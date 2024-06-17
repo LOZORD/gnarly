@@ -11,98 +11,100 @@ const CAMERA_DIMS = {
     height: 480,
 };
 const FULL_COLOR = 255;
-const MAX_BUFFER_SIZE = 15;
 const MAX_OPACITY = 255 * 0.9; // Just below _full_ opacity so things are actually visible behind.
 const WITHIN_BOUNDS = true;
-const ATTACK_RATE = 2;
-const IMAGE_SHRINK_FACTOR = 0.98;// 0.90;
-const REDRAW_BACKGROUND = false;
-const TINT_IMAGES = true;
-const USE_HSB = true;
-const DO_WOBBLE = false;
-const PIXELATION_DENSITY = 0.5;
 
-
-// let testSlider;
-// let testSlider2;
 let controlPanel;
 
 let cam;
 let imageBuffer;
 
 function setup() {
+    // Set up the webcam.
     cam = createCapture(VIDEO, CAMERA_OPTS);
     cam.hide();
 
+    // Create and center the canvas.
     const canvas = createCanvas(CAMERA_DIMS.width * CAMERA_SCALE, CAMERA_DIMS.height * CAMERA_SCALE);
-    // // createCanvas(windowWidth, windowHeight);
-    // background(220);
-
     const x = (windowWidth - width) / 2;
     const y = (windowHeight - height) / 2;
     canvas.position(x, y);
+    background('cornflowerblue');
 
+    // Set up the image buffer.
     imageBuffer = [];
 
-    // testSlider = createSlider(0, 1, 0.2, 0.1);
-    // testSlider.position(50, 20);
-    // fill ('pink');
-    // textSize(40);
-    // text('hello world', testSlider.x + 2 + testSlider.width, 2);
-    // testSlider = new LabelledSlider('Test Slider', 20, 20, 0, 25, 2, 1);
-    // testSlider2 = new LabelledSlider('Another Slider', 20, 40, 0, 3, 0.1, 0.1);
     controlPanel = new ControlPanel([{
-        name: 'TEST_SLIDER_1',
-        label: 'Test Slider',
-        min: 0, max: 25, value: 2, step: 1,
+        name: 'REDRAW_BACKGROUND',
+        label: 'Redraw Background',
+        min: 0, max: 1, value: 0, step: 1,
     }, {
-        name: 'TEST_SLIDER_2',
-        label: 'Test Slider 2!!!',
-        min: 0, max: 3, value: 1.5, step: 0.1,
+        name: 'FRAME_CAPTURE_RATE',
+        label: 'Frame Capture (Attack) Rate',
+        min: 1, max: 20, value: 2, step: 1,
+    }, {
+        name: 'MAX_BUFFER_SIZE',
+        label: 'Max Image Buffer Size',
+        min: 2, max: 50, value: 2, step: 1,
+    }, {
+        name: 'SHRINK_PERCENTAGE',
+        label: 'Image Shrink Factor (%)',
+        min: 75, max: 100, value: 98, step: 1,
+    }, {
+        name: 'TINT_IMAGES',
+        label: 'Tint Images',
+        min: 0, max: 1, value: 1, step: 1,
+    }, {
+        name: 'USE_HSB',
+        label: 'Use HSB/HSV Colorspace',
+        min: 0, max: 1, value: 1, step: 1,
+    }, {
+        name: 'DO_WOBBLE',
+        label: 'Wobble Images',
+        min: 0, max: 1, value: 1, step: 1,
+    }, {
+        name: 'PIXELATION_DENSITY_PERCENTAGE',
+        label: 'Pixelation Density (%)',
+        min: 10, max: 100, value: 50, step: 1,
     }]);
 }
 
 
 function draw() {
-    // resizeCanvas(CA);
-
-    // fill('pink');
-    // text('hello world', testSlider.x * 2 + testSlider.width, 2);
-    // testSlider.draw();
-    // testSlider2.draw();
-    // print(testSlider2.value());
+    const FRAME_COUNT = frameCount;
     controlPanel.draw();
-    print(controlPanel.values());
-    // noLoop();
+
+    const panelValueMap = controlPanel.valuesMap();
+    print(panelValueMap);
+    const {
+        REDRAW_BACKGROUND, 
+        FRAME_CAPTURE_RATE,
+        MAX_BUFFER_SIZE,
+        SHRINK_PERCENTAGE,
+        TINT_IMAGES,
+        USE_HSB,
+        DO_WOBBLE,
+        PIXELATION_DENSITY_PERCENTAGE,
+    } = Object.fromEntries(panelValueMap);
+    
 
     if (REDRAW_BACKGROUND) {
-        background('black');
-    } else if (frameCount % ATTACK_RATE != 0) {
+        background('blue');
+    } else if (frameCount % FRAME_CAPTURE_RATE != 0) {
         return;
     }
 
-    // fill ('white');
-    // textSize(40);
-    // const t =text('test slider', 200, 5);
-    // print(t);
-
-    print(`capturing! ${new Date().toTimeString()}`)
-
-    let newImage = captureImage();
+    let newImage = captureImage(0 & PIXELATION_DENSITY_PERCENTAGE);
     imageBuffer.unshift(newImage);
-
-    if (imageBuffer.length > MAX_BUFFER_SIZE) {
+    while(imageBuffer.length > MAX_BUFFER_SIZE) {
         imageBuffer.pop();
     }
 
-    // print(`got ${imageBuffer.length} images: ${imageBuffer}`);
     const MAX_IMAGE_PLACEMENT_OFFSET = 75;
     const NUM_IMAGES = imageBuffer.length;
     for (let i = 0; i < NUM_IMAGES; i++) {
-        // const opacity = MAX_OPACITY - map(i, 0, MAX_BUFFER_SIZE, 0);
-        const opacity = calculateOpacity(i, NUM_IMAGES);
-        // print(`got opacity ${opacity} for index ${i}`);
-        const tintColor = calculateColor(i, NUM_IMAGES, frameCount);
+        const opacity = calculateOpacity(i, NUM_IMAGES, USE_HSB);
+        const tintColor = calculateColor(i, NUM_IMAGES, FRAME_COUNT, USE_HSB);
 
         if (USE_HSB && TINT_IMAGES) {
             colorMode(HSB, 360, 100, 100, 100);
@@ -116,25 +118,20 @@ function draw() {
         const yOffset = DO_WOBBLE ? i * cos(frameCount / 20) : 0; // i*7.5// NUM_IMAGES - (i *5);//map(cos(frameCount * i), -1, 1, 0, MAX_IMAGE_PLACEMENT_OFFSET);
         const img = imageBuffer[i];
 
-        if (IMAGE_SHRINK_FACTOR > 0) {
-            img.resize(img.width * IMAGE_SHRINK_FACTOR, 0);
+        if (SHRINK_PERCENTAGE > 0) {
+            // TODO: Instead of resizing, which will progressively destroy the image,
+            // we should instead just apply the resizing in the `image` call below.
+            img.resize(img.width * (SHRINK_PERCENTAGE/100.0), 0);
         }
 
         image(img, 0 + xOffset, 0 + yOffset, width + xOffset, height + yOffset);
     }
 }
 
-function captureImage() {
-    // let newImage = createImage(width, height);
-    // newImage.loadPixels(cam);
-    // return newImage;
+function captureImage(pixelationDensityPercentage) {
     let newImage = cam.get(0, 0, CAMERA_DIMS.width, CAMERA_DIMS.height);
-    // print(`got image: ${newImage}`);
-    // print(newImage);
-    // cam = createCapture(VIDEO, CAMERA_OPTS);
-    // cam.hide();
-    if (PIXELATION_DENSITY > 0) { // FIXME(ljr).
-        const density = constrain(PIXELATION_DENSITY, 0.0, displayDensity());
+    if (pixelationDensityPercentage > 0 && false) { // FIXME(ljr).
+        const density = constrain(pixelationDensityPercentage/100, 0.0, displayDensity());
         pixelDensity(density);
         noSmooth();
     }
@@ -142,7 +139,7 @@ function captureImage() {
     return newImage;
 }
 
-function calculateOpacity(imageIndex, numImages) {
+function calculateOpacity(imageIndex, numImages, useHsb) {
     // Lower index => more recent image => higher opacity.
 
     const MAX_OPACITY_PERCENTAGE = 90;
@@ -157,12 +154,12 @@ function calculateOpacity(imageIndex, numImages) {
     );
 
     const indexAdjustedPercentage = MAX_OPACITY_PERCENTAGE - mappedPercentage;
-    const MODE_MAX_OPACITY = USE_HSB ? 10 : 255;
+    const MODE_MAX_OPACITY = useHsb ? 10 : 255;
     return map(indexAdjustedPercentage, 0, 100, 0, MODE_MAX_OPACITY, WITHIN_BOUNDS);
 }
 
-function calculateColor(imageIndex, numImages, frameCount) {
-    if (USE_HSB) {
+function calculateColor(imageIndex, numImages, frameCount, useHsb) {
+    if (useHsb) {
         const fcFactor = map(sin(frameCount / 17), -1, 1, 0, numImages / 2);
         return {
             h: map(imageIndex + fcFactor, 0, numImages, 0, 360, WITHIN_BOUNDS),
@@ -180,8 +177,9 @@ function calculateColor(imageIndex, numImages, frameCount) {
 }
 
 function keyPressed() {
-    if (key == 's') {
-        print('saving!');
-        saveGif(`video-delay-${new Date().toISOString()}.gif`, 5);
-    }
+    // TODO(ljr): Implement image (png) saving functionality.
+    // if (key == 's') {
+    //     print('saving!');
+    //     saveGif(`video-delay-${new Date().toISOString()}.gif`, 5);
+    // }
 }
