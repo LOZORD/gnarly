@@ -18,13 +18,14 @@ const ATTACK_RATE = 2;
 const IMAGE_SHRINK_FACTOR = 0.98;// 0.90;
 const REDRAW_BACKGROUND = false;
 const TINT_IMAGES = true;
-const USE_HSB = false;
+const USE_HSB = true;
 const DO_WOBBLE = false;
 const PIXELATION_DENSITY = 0.5;
 
 
-let testSlider;
-let testSlider2;
+// let testSlider;
+// let testSlider2;
+let controlPanel;
 
 let cam;
 let imageBuffer;
@@ -33,7 +34,7 @@ function setup() {
     cam = createCapture(VIDEO, CAMERA_OPTS);
     cam.hide();
 
-    const canvas = createCanvas(CAMERA_DIMS.width*CAMERA_SCALE, CAMERA_DIMS.height*CAMERA_SCALE);
+    const canvas = createCanvas(CAMERA_DIMS.width * CAMERA_SCALE, CAMERA_DIMS.height * CAMERA_SCALE);
     // // createCanvas(windowWidth, windowHeight);
     // background(220);
 
@@ -48,8 +49,17 @@ function setup() {
     // fill ('pink');
     // textSize(40);
     // text('hello world', testSlider.x + 2 + testSlider.width, 2);
-    testSlider = new LabelledSlider('Test Slider', 20, 20, 0, 25, 2, 1);
-    testSlider2 = new LabelledSlider('Another Slider', 20, 40, 0, 3, 0.1, 0.1);
+    // testSlider = new LabelledSlider('Test Slider', 20, 20, 0, 25, 2, 1);
+    // testSlider2 = new LabelledSlider('Another Slider', 20, 40, 0, 3, 0.1, 0.1);
+    controlPanel = new ControlPanel([{
+        name: 'TEST_SLIDER_1',
+        label: 'Test Slider',
+        min: 0, max: 25, value: 2, step: 1,
+    }, {
+        name: 'TEST_SLIDER_2',
+        label: 'Test Slider 2!!!',
+        min: 0, max: 3, value: 1.5, step: 0.1,
+    }]);
 }
 
 
@@ -58,9 +68,12 @@ function draw() {
 
     // fill('pink');
     // text('hello world', testSlider.x * 2 + testSlider.width, 2);
-    testSlider.draw();
-    testSlider2.draw();
-    print(testSlider2.value());
+    // testSlider.draw();
+    // testSlider2.draw();
+    // print(testSlider2.value());
+    controlPanel.draw();
+    print(controlPanel.values());
+    // noLoop();
 
     if (REDRAW_BACKGROUND) {
         background('black');
