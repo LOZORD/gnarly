@@ -1,3 +1,5 @@
+'use strict';
+
 class LabelledSlider {
     #container;
     #slider;
@@ -39,7 +41,8 @@ class LabelledSlider {
     }
 
     draw() {
-        this.#labelContainer.html(`${this.#label}: ${this.#slider.value()}`);
+        const valueSpan = `<span class='slider-value'>${this.#slider.value()}</span>`;
+        this.#labelContainer.html(`${this.#label}: ${valueSpan} [${this.#min}, ${this.#max}]`);
     }
 
     value() {
