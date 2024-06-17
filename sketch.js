@@ -1,4 +1,3 @@
-// gnarsh.js
 'use strict';
 
 const CAMERA_OPTS = {
@@ -17,12 +16,17 @@ const WITHIN_BOUNDS = true;
 
 let controlPanel;
 
+let cameraRunning = false;
+
 let cam;
 let imageBuffer;
 
 function setup() {
     // Set up the webcam.
-    cam = createCapture(VIDEO, CAMERA_OPTS);
+    cam = createCapture(VIDEO, CAMERA_OPTS, (stream) => {
+        print('got stream: ', !!stream);
+        cameraRunning = true;
+    });
     cam.hide();
 
     // Create and center the canvas.
@@ -71,6 +75,14 @@ function setup() {
         name: 'MIN_SHRINK_PERCENTAGE',
         label: 'Min Image Shrink Factor (%)',
         min: 20, max: 100, value: 95, step: 1,
+    }, {
+        name: 'BW_CLAMPING',
+        label: 'Black/White Clamping (%)',
+        min: 0, max: 100, value: 100, step: 1,
+    }, {
+        name: 'INVERT_FILTER',
+        label: 'Invert Image',
+        min: 0, max: 1, value: 0, step: 1,
     }]);
 }
 
@@ -79,9 +91,14 @@ function draw() {
     const FRAME_COUNT = frameCount;
     controlPanel.draw();
 
+    if (!cameraRunning) {
+        background('red');
+        return;
+    }
+
     const panelValueMap = controlPanel.valuesMap();
     const {
-        REDRAW_BACKGROUND, 
+        REDRAW_BACKGROUND,
         FRAME_CAPTURE_RATE,
         MAX_BUFFER_SIZE,
         MAX_SHRINK_PERCENTAGE,
@@ -90,8 +107,10 @@ function draw() {
         DO_WOBBLE,
         PIXELATION_DENSITY_PERCENTAGE,
         MIN_SHRINK_PERCENTAGE,
+        BW_CLAMPING,
+        INVERT_FILTER,
     } = Object.fromEntries(panelValueMap);
-    
+
 
     if (REDRAW_BACKGROUND) {
         background(15);
@@ -99,9 +118,10 @@ function draw() {
         return;
     }
 
-    let newImage = captureImage(0 & PIXELATION_DENSITY_PERCENTAGE);
+    // FIXME(ljr): pixel density %.
+    let newImage = captureImage(0 & PIXELATION_DENSITY_PERCENTAGE, BW_CLAMPING, INVERT_FILTER);
     imageBuffer.unshift(newImage);
-    while(imageBuffer.length > MAX_BUFFER_SIZE) {
+    while (imageBuffer.length > MAX_BUFFER_SIZE) {
         imageBuffer.pop();
     }
 
@@ -115,7 +135,7 @@ function draw() {
             colorMode(HSB, 360, 100, 100, 100);
             tint(tintColor.h, tintColor.s, tintColor.b, opacity);
         } else {
-            colorMode(RGB, 255, 255, 255, 255);
+            colorMode(RGB, 255, 255, 255, 255); // FIXME(ljr): Get color calculation for RGB working again.
             tint(tintColor.r, tintColor.g, tintColor.b, opacity);
         }
 
@@ -127,18 +147,28 @@ function draw() {
         imageMode(CENTER);
         image(
             img,
-            width/2 + xOffset,
-            height/2 + yOffset,
-            width*(shrinkOffset/100.0) + xOffset,
-            height*(shrinkOffset/100.0) + yOffset
+            width / 2 + xOffset,
+            height / 2 + yOffset,
+            width * (shrinkOffset / 100.0) + xOffset,
+            height * (shrinkOffset / 100.0) + yOffset
         );
     }
 }
 
-function captureImage(pixelationDensityPercentage) {
+function captureImage(pixelationDensityPercentage, bwClamingAmount, invertFilter) {
     let newImage = cam.get(0, 0, CAMERA_DIMS.width, CAMERA_DIMS.height);
+
+    if (bwClamingAmount < 100) {
+        // TODO(ljr): Look into more filter types.
+        newImage.filter(THRESHOLD, 1.0 - bwClamingAmount / 100.0);
+    }
+
+    if (invertFilter) {
+        newImage.filter(INVERT);
+    }
+
     if (pixelationDensityPercentage > 0 && false) { // FIXME(ljr).
-        const density = constrain(pixelationDensityPercentage/100, 0.0, displayDensity());
+        const density = constrain(pixelationDensityPercentage / 100, 0.0, displayDensity());
         pixelDensity(density);
         noSmooth();
     }
@@ -167,6 +197,7 @@ function calculateOpacity(imageIndex, numImages, useHsb) {
 
 function calculateColor(imageIndex, numImages, frameCount, useHsb) {
     if (useHsb) {
+        // TODO(ljr): Add slider control for color change velocity.
         const fcFactor = map(sin(frameCount / 17), -1, 1, 0, numImages / 2);
         return {
             h: map(imageIndex + fcFactor, 0, numImages, 0, 360, WITHIN_BOUNDS),
