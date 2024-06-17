@@ -13,6 +13,7 @@ const CAMERA_DIMS = {
 const FULL_COLOR = 255;
 const MAX_OPACITY = 255 * 0.9; // Just below _full_ opacity so things are actually visible behind.
 const WITHIN_BOUNDS = true;
+// const MIN_SHRINK_PERCENTAGE = 25;
 
 let controlPanel;
 
@@ -29,7 +30,7 @@ function setup() {
     const x = (windowWidth - width) / 2;
     const y = (windowHeight - height) / 2;
     canvas.position(x, y);
-    background('cornflowerblue');
+    background(15);
 
     // Set up the image buffer.
     imageBuffer = [];
@@ -45,11 +46,11 @@ function setup() {
     }, {
         name: 'MAX_BUFFER_SIZE',
         label: 'Max Image Buffer Size',
-        min: 2, max: 50, value: 2, step: 1,
+        min: 2, max: 50, value: 15, step: 1,
     }, {
-        name: 'SHRINK_PERCENTAGE',
-        label: 'Image Shrink Factor (%)',
-        min: 75, max: 100, value: 98, step: 1,
+        name: 'MAX_SHRINK_PERCENTAGE',
+        label: 'Max Image Shrink Factor (%)',
+        min: 1, max: 100, value: 100, step: 1,
     }, {
         name: 'TINT_IMAGES',
         label: 'Tint Images',
@@ -66,6 +67,10 @@ function setup() {
         name: 'PIXELATION_DENSITY_PERCENTAGE',
         label: 'Pixelation Density (%)',
         min: 10, max: 100, value: 50, step: 1,
+    }, {
+        name: 'MIN_SHRINK_PERCENTAGE',
+        label: 'Min Image Shrink Factor (%)',
+        min: 20, max: 100, value: 95, step: 1,
     }]);
 }
 
@@ -75,21 +80,21 @@ function draw() {
     controlPanel.draw();
 
     const panelValueMap = controlPanel.valuesMap();
-    print(panelValueMap);
     const {
         REDRAW_BACKGROUND, 
         FRAME_CAPTURE_RATE,
         MAX_BUFFER_SIZE,
-        SHRINK_PERCENTAGE,
+        MAX_SHRINK_PERCENTAGE,
         TINT_IMAGES,
         USE_HSB,
         DO_WOBBLE,
         PIXELATION_DENSITY_PERCENTAGE,
+        MIN_SHRINK_PERCENTAGE,
     } = Object.fromEntries(panelValueMap);
     
 
     if (REDRAW_BACKGROUND) {
-        background('blue');
+        background(15);
     } else if (frameCount % FRAME_CAPTURE_RATE != 0) {
         return;
     }
@@ -117,14 +122,16 @@ function draw() {
         const xOffset = DO_WOBBLE ? i * sin(frameCount / 15) : 0; // i*5;// map(sin(frameCount * i), -1, 1, 0, MAX_IMAGE_PLACEMENT_OFFSET);
         const yOffset = DO_WOBBLE ? i * cos(frameCount / 20) : 0; // i*7.5// NUM_IMAGES - (i *5);//map(cos(frameCount * i), -1, 1, 0, MAX_IMAGE_PLACEMENT_OFFSET);
         const img = imageBuffer[i];
+        const shrinkOffset = map(i, 0, NUM_IMAGES, MIN_SHRINK_PERCENTAGE, MAX_SHRINK_PERCENTAGE, WITHIN_BOUNDS);
 
-        if (SHRINK_PERCENTAGE > 0) {
-            // TODO: Instead of resizing, which will progressively destroy the image,
-            // we should instead just apply the resizing in the `image` call below.
-            img.resize(img.width * (SHRINK_PERCENTAGE/100.0), 0);
-        }
-
-        image(img, 0 + xOffset, 0 + yOffset, width + xOffset, height + yOffset);
+        imageMode(CENTER);
+        image(
+            img,
+            width/2 + xOffset,
+            height/2 + yOffset,
+            width*(shrinkOffset/100.0) + xOffset,
+            height*(shrinkOffset/100.0) + yOffset
+        );
     }
 }
 
