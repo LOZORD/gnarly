@@ -46,7 +46,7 @@ function setup() {
     }, {
         name: 'FRAME_CAPTURE_RATE',
         label: 'Frame Capture (Attack) Rate',
-        min: 1, max: 20, value: 2, step: 1,
+        min: 1, max: 20, value: 1, step: 1,
     }, {
         name: 'MAX_BUFFER_SIZE',
         label: 'Max Image Buffer Size',
@@ -92,6 +92,10 @@ function setup() {
         name: 'SATURATION',
         label: 'Saturation',
         min: 0, max: 100, value: 100, step: 1,
+    }, {
+        name: 'COLOR_CHANGE_SPEED',
+        label: 'Color Change Speed',
+        min: 1, max: 180, value: 20, step: 1,
     }]);
 }
 
@@ -120,6 +124,7 @@ function draw() {
         INVERT_FILTER,
         DO_EMPTY_BUFFER,
         SATURATION,
+        COLOR_CHANGE_SPEED,
     } = Object.fromEntries(panelValueMap);
 
 
@@ -144,7 +149,13 @@ function draw() {
     const NUM_IMAGES = imageBuffer.length;
     for (let i = 0; i < NUM_IMAGES; i++) {
         const opacity = calculateOpacity(i, NUM_IMAGES, USE_HSB);
-        const tintColor = calculateColor(i, NUM_IMAGES, FRAME_COUNT, USE_HSB, SATURATION);
+        const tintColor = calculateColor(i,
+            NUM_IMAGES,
+            FRAME_COUNT,
+            USE_HSB,
+            SATURATION,
+            COLOR_CHANGE_SPEED,
+        );
 
         if (USE_HSB && TINT_IMAGES) {
             colorMode(HSB, 360, 100, 100, 100);
@@ -210,10 +221,9 @@ function calculateOpacity(imageIndex, numImages, useHsb) {
     return map(indexAdjustedPercentage, 0, 100, 0, MODE_MAX_OPACITY, WITHIN_BOUNDS);
 }
 
-function calculateColor(imageIndex, numImages, frameCount, useHsb, saturation) {
+function calculateColor(imageIndex, numImages, frameCount, useHsb, saturation, colorChangeSpeed) {
     if (useHsb) {
-        // TODO(ljr): Add slider control for color change velocity.
-        const fcFactor = map(sin(frameCount / 17), -1, 1, 0, numImages / 2);
+        const fcFactor = map(sin(frameCount / colorChangeSpeed), -1, 1, 0, numImages / 2);
         return {
             h: map(imageIndex + fcFactor, 0, numImages, 0, 360, WITHIN_BOUNDS),
             s: saturation,
