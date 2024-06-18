@@ -63,6 +63,7 @@ function setup() {
         name: 'USE_HSB',
         label: 'Use HSB/HSV Colorspace',
         min: 0, max: 1, value: 1, step: 1,
+        disabled: true,
     }, {
         name: 'DO_WOBBLE',
         label: 'Wobble Images',
@@ -83,6 +84,14 @@ function setup() {
         name: 'INVERT_FILTER',
         label: 'Invert Image',
         min: 0, max: 1, value: 0, step: 1,
+    }, {
+        name: 'DO_EMPTY_BUFFER',
+        label: 'Empty Buffer',
+        min: 0, max: 1, value: 0, step: 1,
+    }, {
+        name: 'SATURATION',
+        label: 'Saturation',
+        min: 0, max: 100, value: 100, step: 1,
     }]);
 }
 
@@ -109,6 +118,8 @@ function draw() {
         MIN_SHRINK_PERCENTAGE,
         BW_CLAMPING,
         INVERT_FILTER,
+        DO_EMPTY_BUFFER,
+        SATURATION,
     } = Object.fromEntries(panelValueMap);
 
 
@@ -116,6 +127,10 @@ function draw() {
         background(15);
     } else if (frameCount % FRAME_CAPTURE_RATE != 0) {
         return;
+    }
+
+    if (DO_EMPTY_BUFFER) {
+        imageBuffer = [];
     }
 
     // FIXME(ljr): pixel density %.
@@ -129,7 +144,7 @@ function draw() {
     const NUM_IMAGES = imageBuffer.length;
     for (let i = 0; i < NUM_IMAGES; i++) {
         const opacity = calculateOpacity(i, NUM_IMAGES, USE_HSB);
-        const tintColor = calculateColor(i, NUM_IMAGES, FRAME_COUNT, USE_HSB);
+        const tintColor = calculateColor(i, NUM_IMAGES, FRAME_COUNT, USE_HSB, SATURATION);
 
         if (USE_HSB && TINT_IMAGES) {
             colorMode(HSB, 360, 100, 100, 100);
@@ -195,13 +210,13 @@ function calculateOpacity(imageIndex, numImages, useHsb) {
     return map(indexAdjustedPercentage, 0, 100, 0, MODE_MAX_OPACITY, WITHIN_BOUNDS);
 }
 
-function calculateColor(imageIndex, numImages, frameCount, useHsb) {
+function calculateColor(imageIndex, numImages, frameCount, useHsb, saturation) {
     if (useHsb) {
         // TODO(ljr): Add slider control for color change velocity.
         const fcFactor = map(sin(frameCount / 17), -1, 1, 0, numImages / 2);
         return {
             h: map(imageIndex + fcFactor, 0, numImages, 0, 360, WITHIN_BOUNDS),
-            s: 100,
+            s: saturation,
             b: 100,
         }
     }

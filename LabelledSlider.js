@@ -8,7 +8,7 @@ class LabelledSlider {
     #min;
     #max;
 
-    constructor(label, x, y, min, max, value, step) {
+    constructor(label, x, y, min, max, value, step, disabled) {
         this.#label = label;
         this.#min = min;
         this.#max = max;
@@ -24,6 +24,9 @@ class LabelledSlider {
         this.#slider = createSlider(min, max, value, step);
         this.#slider.parent(this.#container);
         this.#slider.style('accent-color', 'grey');
+        if (disabled) {
+            this.#slider.attribute('disabled', true);
+        }
         
         this.#labelContainer = createDiv(label);
         this.#labelContainer.position(this.#slider.x * 2 + this.#slider.width, y);

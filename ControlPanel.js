@@ -6,8 +6,8 @@ class ControlPanel {
     constructor(controlObjects, x = 20, y = 20, yOffset = 25) {
         this.#controls = new Map();
         for (let obj of controlObjects.sort((a, b) => a.name.localeCompare(b.name))) {
-            const {name, label, min, max, step, value } = obj;
-            const slider = new LabelledSlider(label, x, y, min, max, value, step);
+            const {name, label, min, max, step, value, disabled } = obj;
+            const slider = new LabelledSlider(label, x, y, min, max, value, step, disabled || false);
             y += yOffset;
             this.#controls.set(name, slider);
         }
