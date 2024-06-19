@@ -96,6 +96,14 @@ function setup() {
         name: 'COLOR_CHANGE_SPEED',
         label: 'Color Change Speed',
         min: 1, max: 180, value: 20, step: 1,
+    }, {
+        name: 'WOBBLE_X',
+        label: 'Horizontal Wobble',
+        min: -10, max: 10, value: 0, step: 0.1,
+    }, {
+        name: 'WOBBLE_Y',
+        label: 'Vertical Wobble',
+        min: -10, max: 10, value: 0, step: 0.1,
     }]);
 }
 
@@ -105,7 +113,7 @@ function draw() {
     controlPanel.draw();
 
     if (!cameraRunning) {
-        background('red');
+        background('indigo');
         return;
     }
 
@@ -125,6 +133,8 @@ function draw() {
         DO_EMPTY_BUFFER,
         SATURATION,
         COLOR_CHANGE_SPEED,
+        WOBBLE_X,
+        WOBBLE_Y,
     } = Object.fromEntries(panelValueMap);
 
 
@@ -165,8 +175,9 @@ function draw() {
             tint(tintColor.r, tintColor.g, tintColor.b, opacity);
         }
 
-        const xOffset = DO_WOBBLE ? i * sin(frameCount / 15) : 0; // i*5;// map(sin(frameCount * i), -1, 1, 0, MAX_IMAGE_PLACEMENT_OFFSET);
-        const yOffset = DO_WOBBLE ? i * cos(frameCount / 20) : 0; // i*7.5// NUM_IMAGES - (i *5);//map(cos(frameCount * i), -1, 1, 0, MAX_IMAGE_PLACEMENT_OFFSET);
+        const offsets = calculateImageOffsets(DO_WOBBLE, i, FRAME_COUNT, WOBBLE_X, WOBBLE_Y);
+        const xOffset = offsets.x;
+        const yOffset = offsets.y;
         const img = imageBuffer[i];
         const shrinkOffset = map(i, 0, NUM_IMAGES, MIN_SHRINK_PERCENTAGE, MAX_SHRINK_PERCENTAGE, WITHIN_BOUNDS);
 
@@ -237,6 +248,20 @@ function calculateColor(imageIndex, numImages, frameCount, useHsb, saturation, c
         g: FULL_COLOR, // 100 + imageIndex, //map(imageIndex, 0, numImages, 100, FULL_COLOR, WITHIN_BOUNDS),
         b: FULL_COLOR, // 0, // map(sin(frameCount), -1, 1, 100, FULL_COLOR, WITHIN_BOUNDS),
     };
+}
+
+function calculateImageOffsets(doWobble, imageIndex, frameCount, wobbleX, wobbleY) {
+    if (!doWobble) {
+        return {x: 0, y: 0};
+    }
+
+    const nonZeroX = wobbleX || 0.001;
+    const nonZeroY = wobbleY || 0.001;
+
+    return {
+        x: imageIndex * sin(frameCount / nonZeroX),
+        y: imageIndex * cos(frameCount / nonZeroY),
+    }
 }
 
 function keyPressed() {
