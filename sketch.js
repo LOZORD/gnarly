@@ -65,9 +65,9 @@ function setup() {
         min: 0, max: 1, value: 1, step: 1,
         disabled: true,
     }, {
-        name: 'DO_WOBBLE',
+        name: 'WOBBLE_ENABLED',
         label: 'Wobble Images',
-        min: 0, max: 1, value: 1, step: 1,
+        min: 0, max: 1, value: 0, step: 1,
     }, {
         name: 'PIXELATION_DENSITY_PERCENTAGE',
         label: 'Pixelation Density (%)',
@@ -104,6 +104,34 @@ function setup() {
         name: 'WOBBLE_Y',
         label: 'Vertical Wobble',
         min: -10, max: 10, value: 0, step: 0.1,
+    }, {
+        name: 'LISSAJOUS_ENABLED',
+        label: 'Lissajous Curve Tracing: Engaged',
+        min: 0, max: 1, value: 0, step: 1,
+    }, {
+        name: 'LISSAJOUS_CONSTANT_BIG_A',
+        label: 'Lissajous Constant `A`',
+        min: -windowWidth, max: windowWidth, value: 0, step: 0.1,
+    }, {
+        name: 'LISSAJOUS_CONSTANT_LIL_A',
+        label: 'Lissajous Constant `a`',
+        min: 0, max: TWO_PI, value: 0, step: 0.1,
+    }, {
+        name: 'LISSAJOUS_CONSTANT_BIG_B',
+        label: 'Lissajous Constant `B`',
+        min: -windowHeight, max: windowHeight, value: 0, step: 0.1,
+    }, {
+        name: 'LISSAJOUS_CONSTANT_LIL_B',
+        label: 'Lissajous Constant `b`',
+        min: 0, max: TWO_PI, value: 0, step: 0.1,
+    }, {
+        name: 'LISSAJOUS_CONSTANT_DELTA',
+        label: 'Lissajous Constant `d`',
+        min: 0, max: TWO_PI, value: 0, step: 0.1,
+    }, {
+        name: 'LISSAJOUS_TIME_DILATION',
+        label: 'Lissajous Time Dilation',
+        min: 1, max: 180, value: 60, step: 1,
     }]);
 }
 
@@ -125,7 +153,7 @@ function draw() {
         MAX_SHRINK_PERCENTAGE,
         TINT_IMAGES,
         USE_HSB,
-        DO_WOBBLE,
+        WOBBLE_ENABLED,
         PIXELATION_DENSITY_PERCENTAGE,
         MIN_SHRINK_PERCENTAGE,
         BW_CLAMPING,
@@ -135,8 +163,14 @@ function draw() {
         COLOR_CHANGE_SPEED,
         WOBBLE_X,
         WOBBLE_Y,
+        LISSAJOUS_ENABLED,
+        LISSAJOUS_CONSTANT_BIG_A,
+        LISSAJOUS_CONSTANT_LIL_A,
+        LISSAJOUS_CONSTANT_BIG_B,
+        LISSAJOUS_CONSTANT_LIL_B,
+        LISSAJOUS_CONSTANT_DELTA,
+        LISSAJOUS_TIME_DILATION,
     } = Object.fromEntries(panelValueMap);
-
 
     if (REDRAW_BACKGROUND) {
         background(15);
@@ -155,7 +189,6 @@ function draw() {
         imageBuffer.pop();
     }
 
-    const MAX_IMAGE_PLACEMENT_OFFSET = 75;
     const NUM_IMAGES = imageBuffer.length;
     for (let i = 0; i < NUM_IMAGES; i++) {
         const opacity = calculateOpacity(i, NUM_IMAGES, USE_HSB);
@@ -175,20 +208,26 @@ function draw() {
             tint(tintColor.r, tintColor.g, tintColor.b, opacity);
         }
 
-        const offsets = calculateImageOffsets(DO_WOBBLE, i, FRAME_COUNT, WOBBLE_X, WOBBLE_Y);
+        const img = imageBuffer[i];
+        const offsets = calculateImageOffsets(WOBBLE_ENABLED, i, FRAME_COUNT, WOBBLE_X, WOBBLE_Y);
         const xOffset = offsets.x;
         const yOffset = offsets.y;
-        const img = imageBuffer[i];
         const shrinkOffset = map(i, 0, NUM_IMAGES, MIN_SHRINK_PERCENTAGE, MAX_SHRINK_PERCENTAGE, WITHIN_BOUNDS);
+        const imageWidth = cam.width * (shrinkOffset / 100.0) + xOffset;
+        const imageHeight = cam.height * (shrinkOffset / 100.0) + yOffset;
+
+        let ljOffsetX = 0;
+        let ljOffsetY = 0;
+        if (LISSAJOUS_ENABLED) {
+            ljOffsetX = LISSAJOUS_CONSTANT_BIG_A * sin(LISSAJOUS_CONSTANT_LIL_A * (FRAME_COUNT / LISSAJOUS_TIME_DILATION) + LISSAJOUS_CONSTANT_DELTA);
+            ljOffsetY = LISSAJOUS_CONSTANT_BIG_B * sin(LISSAJOUS_CONSTANT_LIL_B * (FRAME_COUNT / LISSAJOUS_TIME_DILATION));
+        }
+
+        const imageX = (width / 2) + xOffset + ljOffsetX;
+        const imageY = (height / 2) + yOffset + ljOffsetY; 
 
         imageMode(CENTER);
-        image(
-            img,
-            width / 2 + xOffset,
-            height / 2 + yOffset,
-            width * (shrinkOffset / 100.0) + xOffset,
-            height * (shrinkOffset / 100.0) + yOffset
-        );
+        image(img, imageX, imageY, imageWidth, imageHeight);
     }
 }
 
@@ -252,7 +291,7 @@ function calculateColor(imageIndex, numImages, frameCount, useHsb, saturation, c
 
 function calculateImageOffsets(doWobble, imageIndex, frameCount, wobbleX, wobbleY) {
     if (!doWobble) {
-        return {x: 0, y: 0};
+        return { x: 0, y: 0 };
     }
 
     const nonZeroX = wobbleX || 0.001;
