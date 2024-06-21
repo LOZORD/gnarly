@@ -14,6 +14,8 @@ const MAX_OPACITY = 255 * 0.9; // Just below _full_ opacity so things are actual
 const WITHIN_BOUNDS = true;
 // const MIN_SHRINK_PERCENTAGE = 25;
 
+let BLEND_MODES;
+
 let controlPanel;
 
 let cameraRunning = false;
@@ -38,6 +40,24 @@ function setup() {
 
     // Set up the image buffer.
     imageBuffer = [];
+
+    BLEND_MODES = [
+        BLEND,      // 0
+        ADD,        // 1
+        DARKEST,    // 2
+        LIGHTEST,   // 3
+        EXCLUSION,  // 4
+        MULTIPLY,   // 5
+        SCREEN,     // 6
+        REPLACE,    // 7
+        REMOVE,     // 8
+        DIFFERENCE, // 9
+        OVERLAY,    // 10
+        HARD_LIGHT, // 11
+        SOFT_LIGHT, // 12
+        DODGE,      // 13
+        BURN,       // 14
+    ];
 
     controlPanel = new ControlPanel([{
         name: 'REDRAW_BACKGROUND',
@@ -132,6 +152,10 @@ function setup() {
         name: 'LISSAJOUS_TIME_DILATION',
         label: 'Lissajous Time Dilation',
         min: 1, max: 180, value: 60, step: 1,
+    }, {
+        name: 'BLEND_MODE',
+        label: 'Blend Mode',
+        min: 0, max: BLEND_MODES.length - 1, value: 0, step: 1,
     }]);
 }
 
@@ -170,6 +194,7 @@ function draw() {
         LISSAJOUS_CONSTANT_LIL_B,
         LISSAJOUS_CONSTANT_DELTA,
         LISSAJOUS_TIME_DILATION,
+        BLEND_MODE,
     } = Object.fromEntries(panelValueMap);
 
     if (REDRAW_BACKGROUND) {
@@ -177,6 +202,8 @@ function draw() {
     } else if (frameCount % FRAME_CAPTURE_RATE != 0) {
         return;
     }
+
+    blendMode(blendModeName(BLEND_MODE));
 
     if (DO_EMPTY_BUFFER) {
         imageBuffer = [];
@@ -224,7 +251,7 @@ function draw() {
         }
 
         const imageX = (width / 2) + xOffset + ljOffsetX;
-        const imageY = (height / 2) + yOffset + ljOffsetY; 
+        const imageY = (height / 2) + yOffset + ljOffsetY;
 
         imageMode(CENTER);
         image(img, imageX, imageY, imageWidth, imageHeight);
@@ -309,4 +336,9 @@ function keyPressed() {
     //     print('saving!');
     //     saveGif(`video-delay-${new Date().toISOString()}.gif`, 5);
     // }
+}
+
+function blendModeName(blendModeNumber) {
+    const index = blendModeNumber < BLEND_MODES.length ? blendModeNumber : BLEND;
+    return BLEND_MODES[index];
 }
