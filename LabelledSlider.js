@@ -21,7 +21,7 @@ class LabelledSlider {
         this.#container.style('padding', '5px');
         this.#container.style('background-color', 'black');
         
-        this.#slider = createSlider(min, max, value, step);
+        this.#slider = createSlider(min, max, value, step || 'auto');
         this.#slider.parent(this.#container);
         this.#slider.style('accent-color', 'grey');
         if (disabled) {
