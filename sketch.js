@@ -182,6 +182,10 @@ function setup() {
         name: 'HUE_SECTOR_ANGLE',
         label: 'Hue Sector Angle (Degrees)',
         min: 0, max: 359, value: 0, step: 0.1,
+    }, {
+        name: 'HOLD_PHOTOS',
+        label: 'Hold Photo Buffer',
+        min: 0, max: 1, value: 0, step: 1,
     }]);
 }
 
@@ -228,8 +232,11 @@ function draw() {
         FILTER_DILATE_ENABLED,
         HUE_SECTOR_WIDTH,
         HUE_SECTOR_ANGLE,
+        HOLD_PHOTOS,
     } = Object.fromEntries(panelValueMap);
 
+    // Use `else if` for the capture rate vs REDRAW_BACKGROUND because it will make the
+    // image drawing choppy otherwise.
     if (REDRAW_BACKGROUND) {
         background(15);
     } else if (frameCount % FRAME_CAPTURE_RATE != 0) {
@@ -242,17 +249,21 @@ function draw() {
         imageBuffer = [];
     }
 
-    // FIXME(ljr): pixel density %.
-    let newImage = captureImage(0 & PIXELATION_DENSITY_PERCENTAGE,
-        BW_CLAMPING,
-        {
-            invert: FILTER_INVERT_ENABLED,
-            posterize: FILTER_POSTERIZE_ENABLED,
-            blurAmount: FILTER_BLUR_AMOUNT,
-            erode: FILTER_ERODE_ENABLED,
-            dilate: FILTER_DILATE_ENABLED,
-        });
-    imageBuffer.unshift(newImage);
+    if (!HOLD_PHOTOS) {
+        // FIXME(ljr): pixel density %.
+        let newImage = captureImage(0 & PIXELATION_DENSITY_PERCENTAGE,
+            BW_CLAMPING,
+            {
+                invert: FILTER_INVERT_ENABLED,
+                posterize: FILTER_POSTERIZE_ENABLED,
+                blurAmount: FILTER_BLUR_AMOUNT,
+                erode: FILTER_ERODE_ENABLED,
+                dilate: FILTER_DILATE_ENABLED,
+            });
+        imageBuffer.unshift(newImage);
+    }
+
+    // Regardless of whether we're "holding photos" (pausing adding new images), let the older images decay.
     while (imageBuffer.length > MAX_BUFFER_SIZE) {
         imageBuffer.pop();
     }
@@ -372,8 +383,8 @@ function calculateColor(
         let minHue = 0;
         let maxHue = 360;
         if (hueSectorWidth) {
-            const a = positiveMod(hueSectorAngle - (hueSectorWidth/2), 360);
-            const b = positiveMod(hueSectorAngle + (hueSectorWidth/2), 360);
+            const a = positiveMod(hueSectorAngle - (hueSectorWidth / 2), 360);
+            const b = positiveMod(hueSectorAngle + (hueSectorWidth / 2), 360);
             minHue = min(a, b);
             maxHue = max(a, b);
         }
