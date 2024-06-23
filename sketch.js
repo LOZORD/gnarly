@@ -101,7 +101,7 @@ function setup() {
         label: 'Black/White Clamping (%)',
         min: 0, max: 100, value: 100, step: 1,
     }, {
-        name: 'INVERT_FILTER',
+        name: 'FILTER_INVERT_ENABLED',
         label: 'Invert Image',
         min: 0, max: 1, value: 0, step: 1,
     }, {
@@ -156,6 +156,22 @@ function setup() {
         name: 'BLEND_MODE',
         label: 'Blend Mode',
         min: 0, max: BLEND_MODES.length - 1, value: 0, step: 1,
+    }, {
+        name: 'FILTER_POSTERIZE_ENABLED',
+        label: 'Posterize Enabled',
+        min: 0, max: 1, value: 0, step: 1,
+    }, {
+        name: 'FILTER_BLUR_AMOUNT',
+        label: 'Blur Amount',
+        min: 0, max: 8, value: 0, step: null,
+    }, {
+        name: 'FILTER_ERODE_ENABLED',
+        label: 'Erode Enabled',
+        min: 0, max: 1, value: 0, step: 1,
+    }, {
+        name: 'FILTER_DILATE_ENABLED',
+        label: 'Dilate Enabled',
+        min: 0, max: 1, value: 0, step: 1,
     }]);
 }
 
@@ -181,7 +197,7 @@ function draw() {
         PIXELATION_DENSITY_PERCENTAGE,
         MIN_SHRINK_PERCENTAGE,
         BW_CLAMPING,
-        INVERT_FILTER,
+        FILTER_INVERT_ENABLED,
         DO_EMPTY_BUFFER,
         SATURATION,
         COLOR_CHANGE_SPEED,
@@ -195,6 +211,10 @@ function draw() {
         LISSAJOUS_CONSTANT_DELTA,
         LISSAJOUS_TIME_DILATION,
         BLEND_MODE,
+        FILTER_POSTERIZE_ENABLED,
+        FILTER_BLUR_AMOUNT,
+        FILTER_ERODE_ENABLED,
+        FILTER_DILATE_ENABLED,
     } = Object.fromEntries(panelValueMap);
 
     if (REDRAW_BACKGROUND) {
@@ -210,7 +230,15 @@ function draw() {
     }
 
     // FIXME(ljr): pixel density %.
-    let newImage = captureImage(0 & PIXELATION_DENSITY_PERCENTAGE, BW_CLAMPING, INVERT_FILTER);
+    let newImage = captureImage(0 & PIXELATION_DENSITY_PERCENTAGE,
+        BW_CLAMPING,
+        {
+            invert: FILTER_INVERT_ENABLED,
+            posterize: FILTER_POSTERIZE_ENABLED,
+            blurAmount: FILTER_BLUR_AMOUNT,
+            erode: FILTER_ERODE_ENABLED,
+            dilate: FILTER_DILATE_ENABLED,
+        });
     imageBuffer.unshift(newImage);
     while (imageBuffer.length > MAX_BUFFER_SIZE) {
         imageBuffer.pop();
@@ -258,7 +286,7 @@ function draw() {
     }
 }
 
-function captureImage(pixelationDensityPercentage, bwClamingAmount, invertFilter) {
+function captureImage(pixelationDensityPercentage, bwClamingAmount, filters) {
     let newImage = cam.get(0, 0, CAMERA_DIMS.width, CAMERA_DIMS.height);
 
     if (bwClamingAmount < 100) {
@@ -266,8 +294,24 @@ function captureImage(pixelationDensityPercentage, bwClamingAmount, invertFilter
         newImage.filter(THRESHOLD, 1.0 - bwClamingAmount / 100.0);
     }
 
-    if (invertFilter) {
+    if (filters.posterize) {
+        newImage.filter(POSTERIZE);
+    }
+
+    if (filters.erode) {
+        newImage.filter(ERODE);
+    }
+
+    if (filters.dilate) {
+        newImage.filter(DILATE);
+    }
+
+    if (filters.invert) {
         newImage.filter(INVERT);
+    }
+
+    if (filters.blurAmount) {
+        newImage.filter(BLUR, filter.blurAmount);
     }
 
     if (pixelationDensityPercentage > 0 && false) { // FIXME(ljr).
