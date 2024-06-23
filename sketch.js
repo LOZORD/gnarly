@@ -172,6 +172,16 @@ function setup() {
         name: 'FILTER_DILATE_ENABLED',
         label: 'Dilate Enabled',
         min: 0, max: 1, value: 0, step: 1,
+    },
+    // Constrains the tinting to a certain HSB hue sector.
+    {
+        name: 'HUE_SECTOR_WIDTH',
+        label: 'Hue Sector Width (Degrees)',
+        min: 0, max: 180, value: 0, step: 0.1,
+    }, {
+        name: 'HUE_SECTOR_ANGLE',
+        label: 'Hue Sector Angle (Degrees)',
+        min: 0, max: 359, value: 0, step: 0.1,
     }]);
 }
 
@@ -186,6 +196,7 @@ function draw() {
     }
 
     const panelValueMap = controlPanel.valuesMap();
+    // TODO: Alphasort these variables.
     const {
         REDRAW_BACKGROUND,
         FRAME_CAPTURE_RATE,
@@ -215,6 +226,8 @@ function draw() {
         FILTER_BLUR_AMOUNT,
         FILTER_ERODE_ENABLED,
         FILTER_DILATE_ENABLED,
+        HUE_SECTOR_WIDTH,
+        HUE_SECTOR_ANGLE,
     } = Object.fromEntries(panelValueMap);
 
     if (REDRAW_BACKGROUND) {
@@ -253,6 +266,8 @@ function draw() {
             USE_HSB,
             SATURATION,
             COLOR_CHANGE_SPEED,
+            HUE_SECTOR_ANGLE,
+            HUE_SECTOR_WIDTH,
         );
 
         if (USE_HSB && TINT_IMAGES) {
@@ -342,11 +357,29 @@ function calculateOpacity(imageIndex, numImages, useHsb) {
     return map(indexAdjustedPercentage, 0, 100, 0, MODE_MAX_OPACITY, WITHIN_BOUNDS);
 }
 
-function calculateColor(imageIndex, numImages, frameCount, useHsb, saturation, colorChangeSpeed) {
+function calculateColor(
+    imageIndex,
+    numImages,
+    frameCount,
+    useHsb,
+    saturation,
+    colorChangeSpeed,
+    hueSectorAngle,
+    hueSectorWidth) {
     if (useHsb) {
         const fcFactor = map(sin(frameCount / colorChangeSpeed), -1, 1, 0, numImages / 2);
+
+        let minHue = 0;
+        let maxHue = 360;
+        if (hueSectorWidth) {
+            const a = positiveMod(hueSectorAngle - (hueSectorWidth/2), 360);
+            const b = positiveMod(hueSectorAngle + (hueSectorWidth/2), 360);
+            minHue = min(a, b);
+            maxHue = max(a, b);
+        }
+
         return {
-            h: map(imageIndex + fcFactor, 0, numImages, 0, 360, WITHIN_BOUNDS),
+            h: map(imageIndex + fcFactor, 0, numImages, minHue, maxHue),
             s: saturation,
             b: 100,
         }
@@ -358,6 +391,11 @@ function calculateColor(imageIndex, numImages, frameCount, useHsb, saturation, c
         g: FULL_COLOR, // 100 + imageIndex, //map(imageIndex, 0, numImages, 100, FULL_COLOR, WITHIN_BOUNDS),
         b: FULL_COLOR, // 0, // map(sin(frameCount), -1, 1, 100, FULL_COLOR, WITHIN_BOUNDS),
     };
+}
+
+// https://stackoverflow.com/a/17323608
+function positiveMod(a, m) {
+    return ((a % m) + m) % m;
 }
 
 function calculateImageOffsets(doWobble, imageIndex, frameCount, wobbleX, wobbleY) {
