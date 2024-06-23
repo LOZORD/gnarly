@@ -186,6 +186,18 @@ function setup() {
         name: 'HOLD_PHOTOS',
         label: 'Hold Photo Buffer',
         min: 0, max: 1, value: 0, step: 1,
+    }, {
+        name: 'DUPLICATE_AMOUNT',
+        label: 'Image Duplicate Amount',
+        min: 0, max: 10, value: 0, step: 1,
+    }, {
+        name: 'DUPLICATE_OFFSET_X',
+        label: 'Image Duplicate Offset X',
+        min: -cam.width/2, max: cam.width/2, value: 0, step: 0.1,
+    }, {
+        name: 'DUPLICATE_OFFSET_Y',
+        label: 'Image Duplicate Offset Y',
+        min: -cam.height/2, max: cam.height/2, value: 0, step: 0.1,
     }]);
 }
 
@@ -205,6 +217,9 @@ function draw() {
         BW_CLAMPING,
         COLOR_CHANGE_SPEED,
         DO_EMPTY_BUFFER,
+        DUPLICATE_AMOUNT,
+        DUPLICATE_OFFSET_X,
+        DUPLICATE_OFFSET_Y,
         FILTER_BLUR_AMOUNT,
         FILTER_DILATE_ENABLED,
         FILTER_ERODE_ENABLED,
@@ -307,7 +322,14 @@ function draw() {
         const imageY = (height / 2) + yOffset + ljOffsetY;
 
         imageMode(CENTER);
+
+        for (let dupe = 1; dupe < DUPLICATE_AMOUNT; dupe++) {
+            image(img, imageX + (dupe * DUPLICATE_OFFSET_X), imageY + (dupe * DUPLICATE_OFFSET_Y), imageWidth, imageHeight);
+        }
+
         image(img, imageX, imageY, imageWidth, imageHeight);
+
+        
     }
 }
 
