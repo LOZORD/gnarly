@@ -434,7 +434,6 @@ function captureImage(pixelationDensity, bwClamingAmount, filters) {
     let newImage = cam.get(0, 0, CAMERA_DIMS.width, CAMERA_DIMS.height);
 
     if (bwClamingAmount < 100) {
-        // TODO(ljr): Look into more filter types.
         newImage.filter(THRESHOLD, 1.0 - bwClamingAmount / 100.0);
     }
 
@@ -459,8 +458,11 @@ function captureImage(pixelationDensity, bwClamingAmount, filters) {
     }
 
     if (pixelationDensity > 0) {
+        noSmooth();
         pixelDensity(pixelationDensity);
-        // noSmooth();
+    } else {
+        smooth();
+        pixelDensity(3);
     }
 
     return newImage;
