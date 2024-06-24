@@ -1,9 +1,11 @@
 'use strict';
 
 class ControlPanel {
-    #SHOW_FRAME_RATE = false;
+    #SHOW_FRAME_RATE = true;
+    #MAX_FRAME_RATE_BUFFER_SIZE = 120;
 
     #frameRateSpan;
+    #frameRateBuffer;
     #controls;
 
     constructor(controlObjects, x = 20, y = 20, yOffset = 25) {
@@ -11,6 +13,7 @@ class ControlPanel {
         this.#frameRateSpan.style('background-color', 'indigo');
         this.#frameRateSpan.style('color', 'white');
         this.#frameRateSpan.style('font-family', 'monospace');
+        this.#frameRateBuffer = [];
         this.#controls = new Map();
         for (let obj of controlObjects.sort((a, b) => a.name.localeCompare(b.name))) {
             const { name, label, min, max, step, value, disabled } = obj;
@@ -22,7 +25,7 @@ class ControlPanel {
 
     draw() {
         if (this.#SHOW_FRAME_RATE) {
-            this.#frameRateSpan.html(`Frame Rate: ${frameRate()} fps`);
+            this.#captureFrameRateAndUpdateSpan();
         }
         this.#controls.forEach(value => value.draw());
     }
@@ -33,5 +36,17 @@ class ControlPanel {
             ret.set(k, v.value());
         }
         return ret;
+    }
+
+    #captureFrameRateAndUpdateSpan() {
+        this.#frameRateBuffer.push(frameRate());
+        while (this.#frameRateBuffer.length > this.#MAX_FRAME_RATE_BUFFER_SIZE) {
+            this.#frameRateBuffer.shift();
+        }
+
+        const average = (this.#frameRateBuffer.reduce((acc, val) => acc + (+val.toFixed(2)), 0) /
+            this.#frameRateBuffer.length);
+
+        this.#frameRateSpan.html(`Frame Rate: ${average.toFixed(2)} fps`);
     }
 }
