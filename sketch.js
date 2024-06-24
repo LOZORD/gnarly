@@ -95,6 +95,10 @@ function setup() {
         label: 'Wobble Images',
         min: 0, max: 1, value: 0, step: 1,
     }, {
+        name: 'PIXELATION_ENABLED',
+        label: 'Pixelation Enabled',
+        min: 0, max: 1, value: 0, step: 1,
+    }, {
         name: 'PIXELATION_DENSITY',
         label: 'Pixelation Density',
         min: 0.01, max: 5.00, value: 3, step: 0.01,
@@ -244,7 +248,7 @@ function draw() {
 
     if (!cameraRunning) {
         fill('indigo');
-        circle(width/2, height/2, 10);
+        circle(width / 2, height / 2, 10);
         return;
     }
 
@@ -283,6 +287,7 @@ function draw() {
         MAX_BUFFER_SIZE,
         MAX_SHRINK_PERCENTAGE,
         MIN_SHRINK_PERCENTAGE,
+        PIXELATION_ENABLED,
         PIXELATION_DENSITY,
         REDRAW_BACKGROUND,
         SATURATION,
@@ -309,6 +314,7 @@ function draw() {
 
     if (!HOLD_PHOTOS) {
         let newImage = captureImage(
+            PIXELATION_ENABLED,
             PIXELATION_DENSITY,
             BW_CLAMPING,
             {
@@ -422,7 +428,7 @@ function draw() {
     }
 }
 
-function captureImage(pixelationDensity, bwClamingAmount, filters) {
+function captureImage(pixelationEnabled, pixelationDensity, bwClamingAmount, filters) {
     let newImage = cam.get(0, 0, CAMERA_DIMS.width, CAMERA_DIMS.height);
 
     if (bwClamingAmount < 100) {
@@ -449,12 +455,10 @@ function captureImage(pixelationDensity, bwClamingAmount, filters) {
         newImage.filter(BLUR, filter.blurAmount);
     }
 
-    if (pixelationDensity > 0) {
+    // We need the `enabled` control so that background images are persisted.
+    if (pixelationEnabled && pixelationDensity > 0) {
         noSmooth();
         pixelDensity(pixelationDensity);
-    } else {
-        smooth();
-        pixelDensity(3);
     }
 
     return newImage;
