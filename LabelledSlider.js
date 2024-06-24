@@ -8,7 +8,7 @@ class LabelledSlider {
     #min;
     #max;
 
-    constructor(label, x, y, min, max, value, step, disabled) {
+    constructor(parentContainer, label, x, y, min, max, value, step, disabled) {
         this.#label = label;
         this.#min = min;
         this.#max = max;
@@ -20,6 +20,7 @@ class LabelledSlider {
         this.#container.style('margin', '5px');
         this.#container.style('padding', '5px');
         this.#container.style('background-color', 'black');
+        this.#container.parent(parentContainer);
         
         this.#slider = createSlider(min, max, value, step);
         this.#slider.parent(this.#container);
@@ -44,8 +45,15 @@ class LabelledSlider {
     }
 
     draw() {
+        this.#labelContainer.show();
+        this.#slider.show();
         const valueSpan = `<span style='background-color: black; color: gold'>${this.#slider.value()}</span>`;
         this.#labelContainer.html(`${this.#label}: ${valueSpan} [${this.#min}, ${this.#max}]`);
+    }
+
+    hide() {
+        this.#labelContainer.hide();
+        this.#slider.hide();
     }
 
     value() {

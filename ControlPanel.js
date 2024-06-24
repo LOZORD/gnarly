@@ -4,26 +4,38 @@ class ControlPanel {
     #SHOW_FRAME_RATE = true;
     #MAX_FRAME_RATE_BUFFER_SIZE = 120;
 
+    #container;
     #frameRateSpan;
     #frameRateBuffer;
     #controls;
 
+    #visible;
+
     constructor(controlObjects, x = 20, y = 20, yOffset = 25) {
+        this.#visible = true;
+        this.#container = createDiv();
         this.#frameRateSpan = createSpan();
         this.#frameRateSpan.style('background-color', 'indigo');
         this.#frameRateSpan.style('color', 'white');
         this.#frameRateSpan.style('font-family', 'monospace');
+        this.#frameRateSpan.parent(this.#container);
         this.#frameRateBuffer = [];
         this.#controls = new Map();
         for (let obj of controlObjects.sort((a, b) => a.name.localeCompare(b.name))) {
             const { name, label, min, max, step, value, disabled } = obj;
-            const slider = new LabelledSlider(label, x, y, min, max, value, step, disabled || false);
+            const slider = new LabelledSlider(this.#container, label, x, y, min, max, value, step, disabled || false);
             y += yOffset;
             this.#controls.set(name, slider);
         }
     }
 
     draw() {
+        if (!this.#visible) {
+            this.#container.style('display', 'none');
+        } else {
+            this.#container.style('display', 'initial');
+        }
+
         if (this.#SHOW_FRAME_RATE) {
             this.#captureFrameRateAndUpdateSpan();
         }
@@ -36,6 +48,10 @@ class ControlPanel {
             ret.set(k, v.value());
         }
         return ret;
+    }
+
+    toggleVisibility() {
+        this.#visible = !this.#visible;
     }
 
     #captureFrameRateAndUpdateSpan() {
