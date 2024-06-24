@@ -92,7 +92,7 @@ function setup() {
         name: 'USE_HSB',
         label: 'Use HSB/HSV Colorspace',
         min: 0, max: 1, value: 1, step: 1,
-        disabled: true,
+        disabled: false,
     }, {
         name: 'WOBBLE_ENABLED',
         label: 'Wobble Images',
@@ -197,31 +197,31 @@ function setup() {
         min: 0, max: 1, value: 0, step: 1,
     }, {
         name: 'DUPLICATE_AMOUNT',
-        label: 'Image Duplicate Amount',
+        label: 'Duplicate Amount',
         min: 0, max: 16, value: 0, step: 1,
     }, {
         name: 'DUPLICATE_OFFSET_X',
-        label: 'Image Duplicate Offset X',
+        label: 'Duplicate Offset X',
         min: -cam.width / 2, max: cam.width / 2, value: 0, step: 0.1,
     }, {
         name: 'DUPLICATE_OFFSET_Y',
-        label: 'Image Duplicate Offset Y',
+        label: 'Duplicate Offset Y',
         min: -cam.height / 2, max: cam.height / 2, value: 0, step: 0.1,
     }, {
         name: 'DUPLICATE_PADDING',
-        label: 'Image Duplicate Padding',
+        label: 'Duplicate Padding',
         min: 0, max: min(width, height) / 16, value: 15, step: 0.1,
     }, {
         name: 'DUPLICATE_MARGIN',
-        label: 'Image Duplicate Margin',
+        label: 'Duplicate Margin',
         min: 0, max: min(width, height) / 8, value: 50, step: 0.1,
     }, {
         name: 'DUPLICATE_ROWS',
-        label: 'Image Duplicate Rows',
+        label: 'Duplicate Rows',
         min: 0, max: 10, value: 2, step: 1,
     }, {
         name: 'DUPLICATE_COLS',
-        label: 'Image Duplicate Columns',
+        label: 'Duplicate Columns',
         min: 0, max: 10, value: 2, step: 1,
     }, {
         name: 'DUPLICATE_SCALE_FACTOR',
@@ -322,24 +322,33 @@ function draw() {
     }
 
     const NUM_IMAGES = imageBuffer.length;
+    const USE_RGB = !USE_HSB;
     for (let i = 0; i < NUM_IMAGES; i++) {
         const opacity = calculateOpacity(i, NUM_IMAGES, USE_HSB);
-        const tintColor = calculateColor(i,
-            NUM_IMAGES,
-            FRAME_COUNT,
-            USE_HSB,
-            SATURATION,
-            COLOR_CHANGE_SPEED,
-            HUE_SECTOR_ANGLE,
-            HUE_SECTOR_WIDTH,
-        );
-
         if (USE_HSB && TINT_IMAGES) {
             colorMode(HSB, 360, 100, 100, 100);
+            const tintColor = calculateHsbColor(
+                i,
+                NUM_IMAGES,
+                FRAME_COUNT,
+                SATURATION,
+                COLOR_CHANGE_SPEED,
+                HUE_SECTOR_ANGLE,
+                HUE_SECTOR_WIDTH,
+            );
             tint(tintColor.h, tintColor.s, tintColor.b, opacity);
-        } else {
-            colorMode(RGB, 255, 255, 255, 255); // FIXME(ljr): Get color calculation for RGB working again.
+        } else if (USE_RGB && TINT_IMAGES) {
+            colorMode(RGB, 255, 255, 255, 255);
+            const tintColor = calculateRgbColor(
+                i,
+                NUM_IMAGES,
+                FRAME_COUNT,
+                COLOR_CHANGE_SPEED,
+            );
             tint(tintColor.r, tintColor.g, tintColor.b, opacity);
+        } else {
+            colorMode(HSB, 360, 100, 100, 100);
+            tint(100, opacity);
         }
 
         const img = imageBuffer[i];
@@ -472,43 +481,48 @@ function calculateOpacity(imageIndex, numImages, useHsb) {
     );
 
     const indexAdjustedPercentage = MAX_OPACITY_PERCENTAGE - mappedPercentage;
-    const MODE_MAX_OPACITY = useHsb ? 10 : 255;
+    const MODE_MAX_OPACITY = useHsb ? 100 : 255;
     return map(indexAdjustedPercentage, 0, 100, 0, MODE_MAX_OPACITY, WITHIN_BOUNDS);
 }
 
-function calculateColor(
+function calculateHsbColor(
     imageIndex,
     numImages,
     frameCount,
-    useHsb,
     saturation,
     colorChangeSpeed,
     hueSectorAngle,
-    hueSectorWidth) {
-    if (useHsb) {
-        const fcFactor = map(sin(frameCount / colorChangeSpeed), -1, 1, 0, numImages / 2);
+    hueSectorWidth,
+) {
+    const fcFactor = map(sin(frameCount / colorChangeSpeed), -1, 1, 0, numImages / 2);
 
-        let minHue = 0;
-        let maxHue = 360;
-        if (hueSectorWidth) {
-            const a = positiveMod(hueSectorAngle - (hueSectorWidth / 2), 360);
-            const b = positiveMod(hueSectorAngle + (hueSectorWidth / 2), 360);
-            minHue = min(a, b);
-            maxHue = max(a, b);
-        }
-
-        return {
-            h: map(imageIndex + fcFactor, 0, numImages, minHue, maxHue),
-            s: saturation,
-            b: 100,
-        }
+    let minHue = 0;
+    let maxHue = 360;
+    if (hueSectorWidth) {
+        const a = positiveMod(hueSectorAngle - (hueSectorWidth / 2), 360);
+        const b = positiveMod(hueSectorAngle + (hueSectorWidth / 2), 360);
+        minHue = min(a, b);
+        maxHue = max(a, b);
     }
 
-
     return {
-        r: FULL_COLOR, // 255 - imageIndex, // map(numImages - imageIndex, 0, numImages, 100, FULL_COLOR, WITHIN_BOUNDS),
-        g: FULL_COLOR, // 100 + imageIndex, //map(imageIndex, 0, numImages, 100, FULL_COLOR, WITHIN_BOUNDS),
-        b: FULL_COLOR, // 0, // map(sin(frameCount), -1, 1, 100, FULL_COLOR, WITHIN_BOUNDS),
+        h: map(imageIndex + fcFactor, 0, numImages, minHue, maxHue),
+        s: saturation,
+        b: 1000,
+    }
+}
+
+function calculateRgbColor(
+    imageIndex,
+    numImages,
+    frameCount,
+    colorChangeSpeed,
+) {
+    return {
+        // The following is just some "fun with math". I personally like HSB mode better than this RGB stuff.
+        r: map(numImages - imageIndex, 0, numImages, (255/4)*(frameCount/colorChangeSpeed), FULL_COLOR, WITHIN_BOUNDS),
+        g: map(imageIndex, 0, numImages, 100, FULL_COLOR, WITHIN_BOUNDS),
+        b: map(sin(frameCount/colorChangeSpeed), -1, 1, 100, FULL_COLOR, WITHIN_BOUNDS),
     };
 }
 
