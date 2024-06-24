@@ -27,12 +27,11 @@ let cameraRunning = false;
 
 let cam;
 let imageBuffer;
+let canvas;
 
 // TODO: clean up comments and organize `const`s and `let`s.
 
 function setup() {
-    document.querySelector('body').style.backgroundColor = 'black';
-
     // Set up the webcam.
     cam = createCapture(VIDEO, CAMERA_OPTS, (stream) => {
         print('got stream: ', !!stream);
@@ -548,11 +547,20 @@ function calculateImageOffsets(doWobble, imageIndex, frameCount, wobbleX, wobble
 }
 
 function keyPressed() {
-    // TODO(ljr): Implement image (png) saving functionality.
-    // if (key == 's') {
-    //     print('saving!');
-    //     saveGif(`video-delay-${new Date().toISOString()}.gif`, 5);
-    // }
+    switch (key) {
+        case 'r': {
+            print('resizing');
+            // canvas.size(window.innerWidth, window.innerHeight);
+            // resizeCanvas(windowWidth, windowHeight);
+        }
+        case 'c': {
+            print('togging visibility');
+            controlPanel.toggleVisibility();
+        }
+        case 's': {
+            print('saving pngs');
+        }
+    }
 }
 
 // TODO: Add control-hiding key press.
