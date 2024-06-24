@@ -126,11 +126,11 @@ function setup() {
     }, {
         name: 'WOBBLE_X',
         label: 'Horizontal Wobble',
-        min: -10, max: 10, value: 0, step: 0.1,
+        min: -10, max: 10, value: -10, step: 0.1,
     }, {
         name: 'WOBBLE_Y',
         label: 'Vertical Wobble',
-        min: -10, max: 10, value: 0, step: 0.1,
+        min: -10, max: 10, value: -10, step: 0.1,
     }, {
         name: 'LISSAJOUS_ENABLED',
         label: 'Lissajous Curve Tracing: Engaged',
@@ -403,8 +403,15 @@ function draw() {
             // line(0, height / 2, width, height / 2);
 
         } else if (DUPLICATE_MODE == DUPLICATE_MODES.PANES) {
+            const nonZeroWobbleY = WOBBLE_Y || 0.001;
             for (let dupe = 1; dupe < DUPLICATE_AMOUNT; dupe++) {
-                image(img, imageX + (dupe * DUPLICATE_OFFSET_X), imageY + (dupe * DUPLICATE_OFFSET_Y), imageWidth, imageHeight);
+                const dupeWobble = map(cos(FRAME_COUNT * dupe / nonZeroWobbleY),
+                    -1, 1, -height / 20, height / 20);
+                image(img,
+                    imageX + (dupe * DUPLICATE_OFFSET_X),
+                    imageY + (dupe * DUPLICATE_OFFSET_Y) + dupeWobble,
+                    imageWidth,
+                    imageHeight);
             }
         }
 
