@@ -4,7 +4,6 @@ const CAMERA_OPTS = {
     flipped: false,
 };
 
-const CAMERA_SCALE = 1.3;
 const CAMERA_DIMS = {
     width: 640,
     height: 480,
@@ -40,11 +39,10 @@ function setup() {
     cam.hide();
 
     // Create and center the canvas.
-    const canvas = createCanvas(CAMERA_DIMS.width * CAMERA_SCALE, CAMERA_DIMS.height * CAMERA_SCALE);
+    canvas = createCanvas(windowWidth, windowHeight);
     const x = (windowWidth - width) / 2;
     const y = (windowHeight - height) / 2;
     canvas.position(x, y);
-    background(15);
 
     // Set up the image buffer.
     imageBuffer = [];
@@ -230,7 +228,13 @@ function setup() {
         name: 'DUPLICATE_MODE',
         label: 'Duplicate Mode',
         min: 0, max: 2, value: 0, step: 1,
+    }, {
+        name: 'CAMERA_SCALE',
+        label: 'Camera Scale',
+        min: 0.25, max: 5, value: 1, step: 0.01,
     }]);
+
+    background('black');
 }
 
 
@@ -239,7 +243,8 @@ function draw() {
     controlPanel.draw();
 
     if (!cameraRunning) {
-        background('indigo');
+        fill('indigo');
+        circle(width/2, height/2, 10);
         return;
     }
 
@@ -247,6 +252,7 @@ function draw() {
     const {
         BLEND_MODE,
         BW_CLAMPING,
+        CAMERA_SCALE,
         COLOR_CHANGE_SPEED,
         DO_EMPTY_BUFFER,
         DUPLICATE_AMOUNT,
@@ -355,9 +361,8 @@ function draw() {
         const xOffset = offsets.x;
         const yOffset = offsets.y;
         const shrinkOffset = map(i, 0, NUM_IMAGES, MIN_SHRINK_PERCENTAGE, MAX_SHRINK_PERCENTAGE, WITHIN_BOUNDS);
-        // const padding = DUPLICATE_PADDING > 0 ? DUPLICATE_PADDING : 1;
-        const imageWidth = (cam.width * (shrinkOffset / 100.0) + xOffset); // /padding;
-        const imageHeight = (cam.height * (shrinkOffset / 100.0) + yOffset); // /padding;
+        const imageWidth = (cam.width * (shrinkOffset / 100.0)) * CAMERA_SCALE;
+        const imageHeight = (cam.height * (shrinkOffset / 100.0)) * CAMERA_SCALE;
 
         let ljOffsetX = 0;
         let ljOffsetY = 0;
@@ -400,18 +405,6 @@ function draw() {
                     image(img, dupeX, dupeY, (imageWidth - DUPLICATE_MARGIN - DUPLICATE_PADDING) / dupeScalar, (imageHeight - DUPLICATE_MARGIN - DUPLICATE_PADDING) / dupeScalar);
                 }
             }
-
-            // const backgroundImg = img.get();
-            // backgroundImg.filter(GRAY);
-            // push ();
-            // image(img, width / 2, height / 2, width, height);
-            // pop ();
-
-            // stroke('cyan');
-            // line(width / 2, 0, width / 2, height);
-            // stroke('magenta');
-            // line(0, height / 2, width, height / 2);
-
         } else if (DUPLICATE_MODE == DUPLICATE_MODES.PANES) {
             const nonZeroWobbleY = WOBBLE_Y || 0.001;
             for (let dupe = 1; dupe < DUPLICATE_AMOUNT; dupe++) {
@@ -521,9 +514,9 @@ function calculateRgbColor(
 ) {
     return {
         // The following is just some "fun with math". I personally like HSB mode better than this RGB stuff.
-        r: map(numImages - imageIndex, 0, numImages, (255/4)*(frameCount/colorChangeSpeed), FULL_COLOR, WITHIN_BOUNDS),
+        r: map(numImages - imageIndex, 0, numImages, (255 / 4) * (frameCount / colorChangeSpeed), FULL_COLOR, WITHIN_BOUNDS),
         g: map(imageIndex, 0, numImages, 100, FULL_COLOR, WITHIN_BOUNDS),
-        b: map(sin(frameCount/colorChangeSpeed), -1, 1, 100, FULL_COLOR, WITHIN_BOUNDS),
+        b: map(sin(frameCount / colorChangeSpeed), -1, 1, 100, FULL_COLOR, WITHIN_BOUNDS),
     };
 }
 
