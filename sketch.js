@@ -23,6 +23,8 @@ let cameraRunning = false;
 let cam;
 let imageBuffer;
 
+// TODO: clean up comments and organize `const`s and `let`s.
+
 function setup() {
     // Set up the webcam.
     cam = createCapture(VIDEO, CAMERA_OPTS, (stream) => {
@@ -163,7 +165,7 @@ function setup() {
     }, {
         name: 'FILTER_BLUR_AMOUNT',
         label: 'Blur Amount',
-        min: 0, max: 8, value: 0, step: null,
+        min: 0, max: 8, value: 0, step: 0.1,
     }, {
         name: 'FILTER_ERODE_ENABLED',
         label: 'Erode Enabled',
@@ -189,15 +191,35 @@ function setup() {
     }, {
         name: 'DUPLICATE_AMOUNT',
         label: 'Image Duplicate Amount',
-        min: 0, max: 10, value: 0, step: 1,
+        min: 0, max: 16, value: 0, step: 1,
     }, {
         name: 'DUPLICATE_OFFSET_X',
         label: 'Image Duplicate Offset X',
-        min: -cam.width/2, max: cam.width/2, value: 0, step: 0.1,
+        min: -cam.width / 2, max: cam.width / 2, value: 0, step: 0.1,
     }, {
         name: 'DUPLICATE_OFFSET_Y',
         label: 'Image Duplicate Offset Y',
-        min: -cam.height/2, max: cam.height/2, value: 0, step: 0.1,
+        min: -cam.height / 2, max: cam.height / 2, value: 0, step: 0.1,
+    }, {
+        name: 'DUPLICATE_PADDING',
+        label: 'Image Duplicate Padding',
+        min: 0, max: min(width, height) / 16, value: 15, step: 0.1,
+    }, {
+        name: 'DUPLICATE_MARGIN',
+        label: 'Image Duplicate Margin',
+        min: 0, max: min(width, height) / 8, value: 50, step: 0.1,
+    }, {
+        name: 'DUPLICATE_ROWS',
+        label: 'Image Duplicate Rows',
+        min: 0, max: 10, value: 2, step: 1,
+    }, {
+        name: 'DUPLICATE_COLS',
+        label: 'Image Duplicate Columns',
+        min: 0, max: 10, value: 2, step: 1,
+    }, {
+        name: 'DUPLICATE_SCALE_FACTOR',
+        label: 'Duplicate Scale Factor',
+        min: 1, max: 8, value: 1, step: 0.1,
     }]);
 }
 
@@ -218,8 +240,13 @@ function draw() {
         COLOR_CHANGE_SPEED,
         DO_EMPTY_BUFFER,
         DUPLICATE_AMOUNT,
+        DUPLICATE_COLS,
+        DUPLICATE_MARGIN,
         DUPLICATE_OFFSET_X,
         DUPLICATE_OFFSET_Y,
+        DUPLICATE_PADDING,
+        DUPLICATE_ROWS,
+        DUPLICATE_SCALE_FACTOR,
         FILTER_BLUR_AMOUNT,
         FILTER_DILATE_ENABLED,
         FILTER_ERODE_ENABLED,
@@ -308,8 +335,9 @@ function draw() {
         const xOffset = offsets.x;
         const yOffset = offsets.y;
         const shrinkOffset = map(i, 0, NUM_IMAGES, MIN_SHRINK_PERCENTAGE, MAX_SHRINK_PERCENTAGE, WITHIN_BOUNDS);
-        const imageWidth = cam.width * (shrinkOffset / 100.0) + xOffset;
-        const imageHeight = cam.height * (shrinkOffset / 100.0) + yOffset;
+        // const padding = DUPLICATE_PADDING > 0 ? DUPLICATE_PADDING : 1;
+        const imageWidth = (cam.width * (shrinkOffset / 100.0) + xOffset); // /padding;
+        const imageHeight = (cam.height * (shrinkOffset / 100.0) + yOffset); // /padding;
 
         let ljOffsetX = 0;
         let ljOffsetY = 0;
@@ -323,13 +351,55 @@ function draw() {
 
         imageMode(CENTER);
 
-        for (let dupe = 1; dupe < DUPLICATE_AMOUNT; dupe++) {
-            image(img, imageX + (dupe * DUPLICATE_OFFSET_X), imageY + (dupe * DUPLICATE_OFFSET_Y), imageWidth, imageHeight);
+        // FIXME: hardcoded `true`.
+        // TODO: We probably don't need margin AND padding.
+        if (true || DUPLICATE_PADDING && DUPLICATE_MARGIN && DUPLICATE_COLS && DUPLICATE_ROWS) {
+            // for (let dupe = 0; dupe < DUPLICATE_AMOUNT; dupe++) {
+            //     // let dupeX = (dupe * DUPLICATE_PADDING) + xOffset + ljOffsetX;
+            //     // let dupeY = (dupe * DUPLICATE_PADDING) + yOffset + ljOffsetY;
+            //     image(img, dupeX, dupeY, imageWidth / DUPLICATE_PADDING, imageHeight / DUPLICATE_PADDING);
+            // }
+            // print(`p: ${DUPLICATE_PADDING}; m: ${DUPLICATE_MARGIN}; tM ${typeof DUPLICATE_MARGIN}; c: ${DUPLICATE_COLS}; r: ${DUPLICATE_ROWS}`);
+            // print(`xo ${xOffset}; yo ${yOffset}; lx: ${ljOffsetX}; ly: ${ljOffsetY}`);
+            const dupeScalar = DUPLICATE_SCALE_FACTOR;
+            for (let x = 0; x < DUPLICATE_ROWS; x++) {
+                for (let y = 0; y < DUPLICATE_COLS; y++) {
+                    // print(`x: ${x}; y: ${y}`);
+                    // imageMode(CORNERS);
+                    // const dupeX = ((width - (imageWidth/dupeScalar * DUPLICATE_COLS))/ 2) + x * (imageWidth / dupeScalar) + xOffset + ljOffsetX;
+                    // const dupeY = ((height - (imageHeight/dupeScalar * DUPLICATE_ROWS)) / 2) + y * (imageHeight / dupeScalar) + yOffset + ljOffsetY;
+                    const scaledWidth = imageWidth / dupeScalar;
+                    const scaledHeight = imageHeight / dupeScalar;
+                    const dupeX = (x * (scaledWidth + DUPLICATE_MARGIN + DUPLICATE_PADDING)) +
+                        (width - (scaledWidth + DUPLICATE_MARGIN + DUPLICATE_PADDING) * DUPLICATE_COLS) / 2 + xOffset + ljOffsetX +
+                        (scaledWidth / 2) + DUPLICATE_MARGIN - DUPLICATE_PADDING;
+                    const dupeY = (y * (scaledHeight + DUPLICATE_MARGIN + DUPLICATE_PADDING)) +
+                        (height - (scaledHeight + DUPLICATE_MARGIN + DUPLICATE_PADDING) * DUPLICATE_ROWS) / 2 + yOffset + ljOffsetY +
+                        (scaledHeight / 2) + DUPLICATE_MARGIN - DUPLICATE_PADDING;
+
+                    // print(`image at ${dupeX}, ${dupeY}`);
+                    image(img, dupeX, dupeY, (imageWidth - DUPLICATE_MARGIN - DUPLICATE_PADDING) / dupeScalar, (imageHeight - DUPLICATE_MARGIN - DUPLICATE_PADDING) / dupeScalar);
+                }
+            }
+
+            // const backgroundImg = img.get();
+            // backgroundImg.filter(GRAY);
+            // push ();
+            // image(img, width / 2, height / 2, width, height);
+            // pop ();
+
+            // stroke('cyan');
+            // line(width / 2, 0, width / 2, height);
+            // stroke('magenta');
+            // line(0, height / 2, width, height / 2);
+
+        } else {
+            for (let dupe = 1; dupe < DUPLICATE_AMOUNT; dupe++) {
+                image(img, imageX + (dupe * DUPLICATE_OFFSET_X), imageY + (dupe * DUPLICATE_OFFSET_Y), imageWidth, imageHeight);
+            }
+
+            image(img, imageX, imageY, imageWidth, imageHeight);
         }
-
-        image(img, imageX, imageY, imageWidth, imageHeight);
-
-        
     }
 }
 
@@ -451,6 +521,8 @@ function keyPressed() {
     //     saveGif(`video-delay-${new Date().toISOString()}.gif`, 5);
     // }
 }
+
+// TODO: Add control-hiding key press.
 
 function blendModeName(blendModeNumber) {
     const index = blendModeNumber < BLEND_MODES.length ? blendModeNumber : BLEND;
