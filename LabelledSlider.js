@@ -44,7 +44,7 @@ class LabelledSlider {
     }
 
     draw() {
-        const valueSpan = `<span class='slider-value'>${this.#slider.value()}</span>`;
+        const valueSpan = `<span style='background-color: black; color: gold'>${this.#slider.value()}</span>`;
         this.#labelContainer.html(`${this.#label}: ${valueSpan} [${this.#min}, ${this.#max}]`);
     }
 

@@ -31,6 +31,8 @@ let imageBuffer;
 // TODO: clean up comments and organize `const`s and `let`s.
 
 function setup() {
+    document.querySelector('body').style.backgroundColor = 'black';
+
     // Set up the webcam.
     cam = createCapture(VIDEO, CAMERA_OPTS, (stream) => {
         print('got stream: ', !!stream);
