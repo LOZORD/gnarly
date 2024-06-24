@@ -13,6 +13,11 @@ const FULL_COLOR = 255;
 const MAX_OPACITY = 255 * 0.9; // Just below _full_ opacity so things are actually visible behind.
 const WITHIN_BOUNDS = true;
 // const MIN_SHRINK_PERCENTAGE = 25;
+const DUPLICATE_MODES = {
+    OFF: 0,
+    PANES: 1,
+    TILES: 2,
+};
 
 let BLEND_MODES;
 
@@ -220,6 +225,10 @@ function setup() {
         name: 'DUPLICATE_SCALE_FACTOR',
         label: 'Duplicate Scale Factor',
         min: 1, max: 8, value: 1, step: 0.1,
+    }, {
+        name: 'DUPLICATE_MODE',
+        label: 'Duplicate Mode',
+        min: 0, max: 2, value: 0, step: 1,
     }]);
 }
 
@@ -242,6 +251,7 @@ function draw() {
         DUPLICATE_AMOUNT,
         DUPLICATE_COLS,
         DUPLICATE_MARGIN,
+        DUPLICATE_MODE,
         DUPLICATE_OFFSET_X,
         DUPLICATE_OFFSET_Y,
         DUPLICATE_PADDING,
@@ -351,9 +361,8 @@ function draw() {
 
         imageMode(CENTER);
 
-        // FIXME: hardcoded `true`.
         // TODO: We probably don't need margin AND padding.
-        if (true || DUPLICATE_PADDING && DUPLICATE_MARGIN && DUPLICATE_COLS && DUPLICATE_ROWS) {
+        if (DUPLICATE_MODE == DUPLICATE_MODES.TILES) {
             // for (let dupe = 0; dupe < DUPLICATE_AMOUNT; dupe++) {
             //     // let dupeX = (dupe * DUPLICATE_PADDING) + xOffset + ljOffsetX;
             //     // let dupeY = (dupe * DUPLICATE_PADDING) + yOffset + ljOffsetY;
@@ -393,13 +402,13 @@ function draw() {
             // stroke('magenta');
             // line(0, height / 2, width, height / 2);
 
-        } else {
+        } else if (DUPLICATE_MODE == DUPLICATE_MODES.PANES) {
             for (let dupe = 1; dupe < DUPLICATE_AMOUNT; dupe++) {
                 image(img, imageX + (dupe * DUPLICATE_OFFSET_X), imageY + (dupe * DUPLICATE_OFFSET_Y), imageWidth, imageHeight);
             }
-
-            image(img, imageX, imageY, imageWidth, imageHeight);
         }
+
+        image(img, imageX, imageY, imageWidth, imageHeight);
     }
 }
 
