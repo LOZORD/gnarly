@@ -98,9 +98,9 @@ function setup() {
         label: 'Wobble Images',
         min: 0, max: 1, value: 0, step: 1,
     }, {
-        name: 'PIXELATION_DENSITY_PERCENTAGE',
-        label: 'Pixelation Density (%)',
-        min: 10, max: 100, value: 50, step: 1,
+        name: 'PIXELATION_DENSITY',
+        label: 'Pixelation Density',
+        min: 0.01, max: 5.00, value: 3, step: 0.01,
     }, {
         name: 'MIN_SHRINK_PERCENTAGE',
         label: 'Min Image Shrink Factor (%)',
@@ -278,7 +278,7 @@ function draw() {
         MAX_BUFFER_SIZE,
         MAX_SHRINK_PERCENTAGE,
         MIN_SHRINK_PERCENTAGE,
-        PIXELATION_DENSITY_PERCENTAGE,
+        PIXELATION_DENSITY,
         REDRAW_BACKGROUND,
         SATURATION,
         TINT_IMAGES,
@@ -303,8 +303,8 @@ function draw() {
     }
 
     if (!HOLD_PHOTOS) {
-        // FIXME(ljr): pixel density %.
-        let newImage = captureImage(0 & PIXELATION_DENSITY_PERCENTAGE,
+        let newImage = captureImage(
+            PIXELATION_DENSITY,
             BW_CLAMPING,
             {
                 invert: FILTER_INVERT_ENABLED,
@@ -421,7 +421,7 @@ function draw() {
     }
 }
 
-function captureImage(pixelationDensityPercentage, bwClamingAmount, filters) {
+function captureImage(pixelationDensity, bwClamingAmount, filters) {
     let newImage = cam.get(0, 0, CAMERA_DIMS.width, CAMERA_DIMS.height);
 
     if (bwClamingAmount < 100) {
@@ -449,10 +449,9 @@ function captureImage(pixelationDensityPercentage, bwClamingAmount, filters) {
         newImage.filter(BLUR, filter.blurAmount);
     }
 
-    if (pixelationDensityPercentage > 0 && false) { // FIXME(ljr).
-        const density = constrain(pixelationDensityPercentage / 100, 0.0, displayDensity());
-        pixelDensity(density);
-        noSmooth();
+    if (pixelationDensity > 0) {
+        pixelDensity(pixelationDensity);
+        // noSmooth();
     }
 
     return newImage;
