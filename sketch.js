@@ -1,5 +1,10 @@
 'use strict';
 
+// P5Capture.setDefaultOptions({
+//     format: "mp4",
+//     disableUi: true,
+// });
+
 const CAMERA_OPTS = {
     flipped: false,
 };
@@ -556,16 +561,41 @@ function keyPressed() {
     switch (key) {
         case 'r': {
             print('resizing');
-            // canvas.size(window.innerWidth, window.innerHeight);
-            // resizeCanvas(windowWidth, windowHeight);
+            resizeCanvas(windowWidth, windowHeight);
+            return;
         }
         case 'c': {
-            print('togging visibility');
+            print('togging control panel visibility');
             controlPanel.toggleVisibility();
+            return;
         }
         case 's': {
-            print('saving pngs');
+            print('saving canvas');
+            saveCanvas(`canvas-${Date.now()}.png`);
+            return;
         }
+        // case 'f': {
+        //     print('attempting to capture');
+        //     const capture = P5Capture.getInstance();
+        //     if (capture.state === "idle") {
+        //         print('capturing');
+        //         capture.start();
+        //     } else {
+        //         print('stopping capture manually');
+        //         capture.stop();
+        //     }
+        //     setTimeout(
+        //         () => {
+        //             print('attempting to stop automatically');
+        //             const capture = P5Capture.getInstance();
+        //             if (capture.state != "idle") {
+        //                 print('stopping capture automatically');
+        //                 capture.stop();
+        //             }
+        //         },
+        //         10 * 1_000,
+        //     );
+        // }
     }
 }
 
