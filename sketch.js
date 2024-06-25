@@ -184,11 +184,11 @@ function setup() {
     {
         name: 'HUE_SECTOR_WIDTH',
         label: 'Hue Sector Width (Degrees)',
-        min: 0, max: 180, value: 0, step: 0.1,
+        min: 0, max: 359, value: 0, step: 0.01,
     }, {
         name: 'HUE_SECTOR_ANGLE',
         label: 'Hue Sector Angle (Degrees)',
-        min: 0, max: 359, value: 0, step: 0.1,
+        min: 0, max: 359, value: 0, step: 0.01,
     }, {
         name: 'HOLD_PHOTOS',
         label: 'Hold Photo Buffer',
@@ -395,6 +395,7 @@ function draw() {
                     // imageMode(CORNERS);
                     // const dupeX = ((width - (imageWidth/dupeScalar * DUPLICATE_COLS))/ 2) + x * (imageWidth / dupeScalar) + xOffset + ljOffsetX;
                     // const dupeY = ((height - (imageHeight/dupeScalar * DUPLICATE_ROWS)) / 2) + y * (imageHeight / dupeScalar) + yOffset + ljOffsetY;
+                    // Shout out to Patt Vira: https://www.youtube.com/watch?v=iUOmjiA0FiY.
                     const scaledWidth = imageWidth / dupeScalar;
                     const scaledHeight = imageHeight / dupeScalar;
                     const dupeX = (x * (scaledWidth + DUPLICATE_MARGIN + DUPLICATE_PADDING)) +
@@ -492,19 +493,22 @@ function calculateHsbColor(
     const speed = MAX_COLOR_CHANGE_SPEED + 1 - colorChangeSpeed; // +1 to avoid div by 0.
     const frameCountFactor = map(sin(frameCount / speed), -1, 1, 0, numImages, WITHIN_BOUNDS);
 
-    let minHue = 0;
-    let maxHue = 360;
+    const minHue = 0;
+    const maxHue = hueSectorWidth || 360;
+    const hueWithoutOffset = map((imageIndex + frameCountFactor) % numImages, 0, numImages-1, minHue, maxHue, WITHIN_BOUNDS);
+    let angleOffset = 0;
+    // If the width is positive, then allow the angle to be set.
     if (hueSectorWidth) {
-        const a = positiveMod(hueSectorAngle - (hueSectorWidth / 2), 360);
-        const b = positiveMod(hueSectorAngle + (hueSectorWidth / 2), 360);
-        minHue = min(a, b);
-        maxHue = max(a, b);
+        angleOffset = hueSectorAngle;
     }
+    // Since the angle offset bisects the sector defined by the width, move the chosen angle
+    // by the offset, but also adjust the offset so that it bisects that sector.
+    const hue = positiveMod(hueWithoutOffset + (angleOffset - hueSectorWidth/2), 360);
 
     return {
-        h: map((imageIndex + frameCountFactor) % numImages, 0, numImages, minHue, maxHue, WITHIN_BOUNDS),
+        h: hue,
         s: saturation,
-        b: 1000,
+        b: 100,
     }
 }
 
