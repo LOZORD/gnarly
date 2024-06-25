@@ -3,15 +3,14 @@
 const CAMERA_OPTS = {
     flipped: false,
 };
-
+// It works on my computer...
 const CAMERA_DIMS = {
     width: 640,
     height: 480,
 };
 const FULL_COLOR = 255;
-const MAX_OPACITY = 255 * 0.9; // Just below _full_ opacity so things are actually visible behind.
-const WITHIN_BOUNDS = true;
-// const MIN_SHRINK_PERCENTAGE = 25;
+const MAX_OPACITY = 255 * 0.999; // Just below _full_ opacity so things are actually visible behind.
+const WITHIN_BOUNDS = true; // For better readability in `map` calls.
 const DUPLICATE_MODES = {
     OFF: 0,
     PANES: 1,
@@ -19,17 +18,15 @@ const DUPLICATE_MODES = {
 };
 const MAX_COLOR_CHANGE_SPEED = 180;
 
+// Blend modes defined by P5 for this 2D canvas.
+// It's declared in setup since the variables might not exist at the global
+// scope.
 let BLEND_MODES;
-
-let controlPanel;
-
-let cameraRunning = false;
-
 let cam;
-let imageBuffer;
+let cameraRunning = false;
 let canvas;
-
-// TODO: clean up comments and organize `const`s and `let`s.
+let controlPanel;
+let imageBuffer;
 
 function setup() {
     // Set up the webcam.
@@ -235,20 +232,29 @@ function setup() {
         min: 0.25, max: 5, value: 1, step: 0.01,
     }]);
 
+    // Clear the background.
+    // Since we like having older image artifacts remain,
+    // this should be the only `background` call that is not controlled/enabled
+    // elsewhere.
     background(0);
 }
 
 
 function draw() {
+    // Just alias the variable to a const.
     const FRAME_COUNT = frameCount;
+
+    // Always update the control panel (even regardless of visibility).
     controlPanel.draw();
 
+    // Just show something while the camera is getting ready.
     if (!cameraRunning) {
         fill('indigo');
         circle(width / 2, height / 2, 10);
         return;
     }
 
+    // Load all of the values from our control panel.
     const panelValueMap = controlPanel.valuesMap();
     const {
         BLEND_MODE,
@@ -309,6 +315,7 @@ function draw() {
         imageBuffer = [];
     }
 
+    // Push a new image to the front of the buffer if we're not paused.
     if (!HOLD_PHOTOS) {
         let newImage = captureImage(
             PIXELATION_ENABLED,
@@ -333,6 +340,7 @@ function draw() {
     const USE_RGB = !USE_HSB;
     for (let i = 0; i < NUM_IMAGES; i++) {
         const opacity = calculateOpacity(i, NUM_IMAGES, USE_HSB);
+
         if (USE_HSB && TINT_IMAGES) {
             colorMode(HSB, 360, 100, 100, 100);
             const tintColor = calculateHsbColor(
@@ -367,6 +375,7 @@ function draw() {
         const imageWidth = (cam.width * (shrinkOffset / 100.0)) * CAMERA_SCALE;
         const imageHeight = (cam.height * (shrinkOffset / 100.0)) * CAMERA_SCALE;
 
+        // Lissajous curve: https://en.m.wikipedia.org/wiki/Lissajous_curve.
         let ljOffsetX = 0;
         let ljOffsetY = 0;
         if (LISSAJOUS_ENABLED) {
@@ -381,20 +390,9 @@ function draw() {
 
         // TODO: We probably don't need margin AND padding.
         if (DUPLICATE_MODE == DUPLICATE_MODES.TILES) {
-            // for (let dupe = 0; dupe < DUPLICATE_AMOUNT; dupe++) {
-            //     // let dupeX = (dupe * DUPLICATE_PADDING) + xOffset + ljOffsetX;
-            //     // let dupeY = (dupe * DUPLICATE_PADDING) + yOffset + ljOffsetY;
-            //     image(img, dupeX, dupeY, imageWidth / DUPLICATE_PADDING, imageHeight / DUPLICATE_PADDING);
-            // }
-            // print(`p: ${DUPLICATE_PADDING}; m: ${DUPLICATE_MARGIN}; tM ${typeof DUPLICATE_MARGIN}; c: ${DUPLICATE_COLS}; r: ${DUPLICATE_ROWS}`);
-            // print(`xo ${xOffset}; yo ${yOffset}; lx: ${ljOffsetX}; ly: ${ljOffsetY}`);
             const dupeScalar = DUPLICATE_SCALE_FACTOR;
             for (let x = 0; x < DUPLICATE_ROWS; x++) {
                 for (let y = 0; y < DUPLICATE_COLS; y++) {
-                    // print(`x: ${x}; y: ${y}`);
-                    // imageMode(CORNERS);
-                    // const dupeX = ((width - (imageWidth/dupeScalar * DUPLICATE_COLS))/ 2) + x * (imageWidth / dupeScalar) + xOffset + ljOffsetX;
-                    // const dupeY = ((height - (imageHeight/dupeScalar * DUPLICATE_ROWS)) / 2) + y * (imageHeight / dupeScalar) + yOffset + ljOffsetY;
                     // Shout out to Patt Vira: https://www.youtube.com/watch?v=iUOmjiA0FiY.
                     const scaledWidth = imageWidth / dupeScalar;
                     const scaledHeight = imageHeight / dupeScalar;
@@ -405,15 +403,18 @@ function draw() {
                         (height - (scaledHeight + DUPLICATE_MARGIN + DUPLICATE_PADDING) * DUPLICATE_ROWS) / 2 + yOffset + ljOffsetY +
                         (scaledHeight / 2) + DUPLICATE_MARGIN - DUPLICATE_PADDING;
 
-                    // print(`image at ${dupeX}, ${dupeY}`);
                     image(img, dupeX, dupeY, (imageWidth - DUPLICATE_MARGIN - DUPLICATE_PADDING) / dupeScalar, (imageHeight - DUPLICATE_MARGIN - DUPLICATE_PADDING) / dupeScalar);
                 }
             }
         } else if (DUPLICATE_MODE == DUPLICATE_MODES.PANES) {
+            // Avoid div-by-zero. We also only wobble in the vertical direction.
             const nonZeroWobbleY = WOBBLE_Y || 0.001;
             for (let dupe = 1; dupe < DUPLICATE_AMOUNT; dupe++) {
-                const dupeWobble = map(cos(FRAME_COUNT * dupe / nonZeroWobbleY),
-                    -1, 1, -height / 20, height / 20);
+                const dupeWobble = map(
+                    cos(FRAME_COUNT * dupe / nonZeroWobbleY),
+                    -1, 1,
+                    -height / 20, height / 20
+                );
                 image(img,
                     imageX + (dupe * DUPLICATE_OFFSET_X),
                     imageY + (dupe * DUPLICATE_OFFSET_Y) + dupeWobble,
@@ -422,12 +423,16 @@ function draw() {
             }
         }
 
+        // Draw the main image.
         image(img, imageX, imageY, imageWidth, imageHeight);
     }
 }
 
 function captureImage(pixelationEnabled, pixelationDensity, bwClamingAmount, filters) {
     let newImage = cam.get(0, 0, CAMERA_DIMS.width, CAMERA_DIMS.height);
+
+    // Apply filters on image capture instead of image drawing to improve
+    // performance (no need to copy the image).
 
     if (bwClamingAmount < 100) {
         newImage.filter(THRESHOLD, 1.0 - bwClamingAmount / 100.0);
@@ -454,6 +459,7 @@ function captureImage(pixelationEnabled, pixelationDensity, bwClamingAmount, fil
     }
 
     // We need the `enabled` control so that background images are persisted.
+    // Setting `pixelDensity` regardless will unfortunately clear the background.
     if (pixelationEnabled && pixelationDensity > 0) {
         noSmooth();
         pixelDensity(pixelationDensity);
@@ -465,8 +471,8 @@ function captureImage(pixelationEnabled, pixelationDensity, bwClamingAmount, fil
 function calculateOpacity(imageIndex, numImages, useHsb) {
     // Lower index => more recent image => higher opacity.
 
-    const MAX_OPACITY_PERCENTAGE = 90;
-    const MIN_OPACITY_PERCENTAGE = 10;
+    const MAX_OPACITY_PERCENTAGE = 99;
+    const MIN_OPACITY_PERCENTAGE = 1;
 
     // Some number within [10, 90].
     const mappedPercentage = map(
@@ -495,7 +501,7 @@ function calculateHsbColor(
 
     const minHue = 0;
     const maxHue = hueSectorWidth || 360;
-    const hueWithoutOffset = map((imageIndex + frameCountFactor) % numImages, 0, numImages-1, minHue, maxHue, WITHIN_BOUNDS);
+    const hueWithoutOffset = map((imageIndex + frameCountFactor) % numImages, 0, numImages - 1, minHue, maxHue, WITHIN_BOUNDS);
     let angleOffset = 0;
     // If the width is positive, then allow the angle to be set.
     if (hueSectorWidth) {
@@ -503,12 +509,12 @@ function calculateHsbColor(
     }
     // Since the angle offset bisects the sector defined by the width, move the chosen angle
     // by the offset, but also adjust the offset so that it bisects that sector.
-    const hue = positiveMod(hueWithoutOffset + (angleOffset - hueSectorWidth/2), 360);
+    const hue = positiveMod(hueWithoutOffset + (angleOffset - hueSectorWidth / 2), 360);
 
     return {
         h: hue,
         s: saturation,
-        b: 100,
+        b: 100000, // Might this SUPER bright!
     }
 }
 
@@ -519,7 +525,8 @@ function calculateRgbColor(
     colorChangeSpeed,
 ) {
     return {
-        // The following is just some "fun with math". I personally like HSB mode better than this RGB stuff.
+        // The following is just some "fun with math".
+        // I personally like HSB mode better than this RGB stuff.
         r: map(numImages - imageIndex, 0, numImages, (255 / 4) * (frameCount / colorChangeSpeed), FULL_COLOR, WITHIN_BOUNDS),
         g: map(imageIndex, 0, numImages, 100, FULL_COLOR, WITHIN_BOUNDS),
         b: map(sin(frameCount / colorChangeSpeed), -1, 1, 100, FULL_COLOR, WITHIN_BOUNDS),
