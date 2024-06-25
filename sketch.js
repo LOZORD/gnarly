@@ -38,11 +38,7 @@ function setup() {
     });
     cam.hide();
 
-    // Create and center the canvas.
     canvas = createCanvas(windowWidth, windowHeight);
-    const x = (windowWidth - width) / 2;
-    const y = (windowHeight - height) / 2;
-    canvas.position(x, y);
 
     // Set up the image buffer.
     imageBuffer = [];
@@ -238,7 +234,7 @@ function setup() {
         min: 0.25, max: 5, value: 1, step: 0.01,
     }]);
 
-    background('black');
+    background(0);
 }
 
 
@@ -301,7 +297,7 @@ function draw() {
     // Use `else if` for the capture rate vs REDRAW_BACKGROUND because it will make the
     // image drawing choppy otherwise.
     if (REDRAW_BACKGROUND) {
-        background(15);
+        background(0);
     } else if (frameCount % FRAME_CAPTURE_RATE != 0) {
         return;
     }
@@ -492,6 +488,7 @@ function calculateHsbColor(
     hueSectorAngle,
     hueSectorWidth,
 ) {
+    // TODO: fix the calculation here to make green available to low-index images.
     const fcFactor = map(sin(frameCount / colorChangeSpeed), -1, 1, 0, numImages / 2);
 
     let minHue = 0;
@@ -559,8 +556,6 @@ function keyPressed() {
         }
     }
 }
-
-// TODO: Add control-hiding key press.
 
 function blendModeName(blendModeNumber) {
     const index = blendModeNumber < BLEND_MODES.length ? blendModeNumber : BLEND;
