@@ -34,12 +34,10 @@ class LabelledSlider {
         this.#labelContainer.parent(this.#container);
         this.#labelContainer.style('background-color', 'black');
         this.#labelContainer.style('color', 'grey');
-        // this.#labelContainer.style('color', 'grey');
         this.#labelContainer.style('font-family', 'monospace');
         this.#labelContainer.style('font-size', 16);
         this.#labelContainer.style('left', 0);
         this.#labelContainer.style('position', 'initial');
-        // this.#labelContainer.style('veritcal-align', 'middle');
 
         this.#container.style('width', 'auto');
     }
@@ -47,7 +45,7 @@ class LabelledSlider {
     draw() {
         this.#labelContainer.show();
         this.#slider.show();
-        const valueSpan = `<span style='background-color: black; color: gold'>${this.#slider.value()}</span>`;
+        const valueSpan = `<span class='slider-value'>${this.#slider.value()}</span>`;
         this.#labelContainer.html(`${this.#label}: ${valueSpan} [${this.#min}, ${this.#max}]`);
     }
 
