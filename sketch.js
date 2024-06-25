@@ -17,6 +17,7 @@ const DUPLICATE_MODES = {
     TILES: 2,
 };
 const MAX_COLOR_CHANGE_SPEED = 180;
+const MAX_ROTATION_SPEED = 20;
 
 // Blend modes defined by P5 for this 2D canvas.
 // It's declared in setup since the variables might not exist at the global
@@ -230,6 +231,14 @@ function setup() {
         name: 'CAMERA_SCALE',
         label: 'Camera Scale',
         min: 0.25, max: 5, value: 1, step: 0.01,
+    }, {
+        name: 'ROTATION_OFFSET',
+        label: 'Rotation Offset',
+        min: -1.6, max: 1.6, value: 0, step: 0.1,
+    }, {
+        name: 'ROTATION_SPEED',
+        label: 'Rotation Speed',
+        min: 0, max: MAX_ROTATION_SPEED, value: 0, step: 1,
     }]);
 
     // Clear the background.
@@ -290,9 +299,11 @@ function draw() {
         MAX_BUFFER_SIZE,
         MAX_SHRINK_PERCENTAGE,
         MIN_SHRINK_PERCENTAGE,
-        PIXELATION_ENABLED,
         PIXELATION_DENSITY,
+        PIXELATION_ENABLED,
         REDRAW_BACKGROUND,
+        ROTATION_OFFSET,
+        ROTATION_SPEED,
         SATURATION,
         TINT_IMAGES,
         USE_HSB,
@@ -339,6 +350,15 @@ function draw() {
     const NUM_IMAGES = imageBuffer.length;
     const USE_RGB = !USE_HSB;
     for (let i = 0; i < NUM_IMAGES; i++) {
+        if (ROTATION_SPEED) {
+            const indexFactor = map(i, 0, NUM_IMAGES - 1, 0, TWO_PI, WITHIN_BOUNDS);
+            const speedFactor = map(sin(FRAME_COUNT / (MAX_ROTATION_SPEED - ROTATION_SPEED + 60)), -1, 1, 0, TWO_PI, WITHIN_BOUNDS);
+            const rot = map(indexFactor + speedFactor + ROTATION_OFFSET, 0, TWO_PI + TWO_PI + PI / 2, 0, TWO_PI, WITHIN_BOUNDS);
+            rotate(rot);
+        } else {
+            rotate(0);
+        }
+
         const opacity = calculateOpacity(i, NUM_IMAGES, USE_HSB);
 
         if (USE_HSB && TINT_IMAGES) {
