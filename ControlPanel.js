@@ -5,6 +5,7 @@ class ControlPanel {
     #MAX_FRAME_RATE_BUFFER_SIZE = 120;
 
     #container;
+    #frameRateContainer;
     #frameRateSpan;
     #frameRateBuffer;
     #controls;
@@ -14,17 +15,21 @@ class ControlPanel {
     constructor(controlObjects, x = 20, y = 20, yOffset = 25) {
         this.#visible = true;
         this.#container = createDiv();
+        this.#frameRateContainer = createDiv();
+        this.#frameRateContainer.position(x, y);
+        this.#frameRateContainer.parent(this.#container);
         this.#frameRateSpan = createSpan();
         this.#frameRateSpan.style('background-color', 'indigo');
         this.#frameRateSpan.style('color', 'white');
         this.#frameRateSpan.style('font-family', 'monospace');
-        this.#frameRateSpan.parent(this.#container);
+        this.#frameRateSpan.parent(this.#frameRateContainer);
         this.#frameRateBuffer = [];
         this.#controls = new Map();
+        let sliderY = y + yOffset; 
         for (let obj of controlObjects.sort((a, b) => a.name.localeCompare(b.name))) {
             const { name, label, min, max, step, value, disabled } = obj;
-            const slider = new LabelledSlider(this.#container, label, x, y, min, max, value, step, disabled || false);
-            y += yOffset;
+            const slider = new LabelledSlider(this.#container, label, x, sliderY, min, max, value, step, disabled || false);
+            sliderY += yOffset;
             this.#controls.set(name, slider);
         }
     }
