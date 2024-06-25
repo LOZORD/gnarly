@@ -1,10 +1,5 @@
 'use strict';
 
-// P5Capture.setDefaultOptions({
-//     format: "mp4",
-//     disableUi: true,
-// });
-
 const CAMERA_OPTS = {
     flipped: false,
 };
@@ -574,28 +569,6 @@ function keyPressed() {
             saveCanvas(`canvas-${Date.now()}.png`);
             return;
         }
-        // case 'f': {
-        //     print('attempting to capture');
-        //     const capture = P5Capture.getInstance();
-        //     if (capture.state === "idle") {
-        //         print('capturing');
-        //         capture.start();
-        //     } else {
-        //         print('stopping capture manually');
-        //         capture.stop();
-        //     }
-        //     setTimeout(
-        //         () => {
-        //             print('attempting to stop automatically');
-        //             const capture = P5Capture.getInstance();
-        //             if (capture.state != "idle") {
-        //                 print('stopping capture automatically');
-        //                 capture.stop();
-        //             }
-        //         },
-        //         10 * 1_000,
-        //     );
-        // }
     }
 }
 
