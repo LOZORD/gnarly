@@ -17,6 +17,7 @@ const DUPLICATE_MODES = {
     PANES: 1,
     TILES: 2,
 };
+const MAX_COLOR_CHANGE_SPEED = 180;
 
 let BLEND_MODES;
 
@@ -121,7 +122,7 @@ function setup() {
     }, {
         name: 'COLOR_CHANGE_SPEED',
         label: 'Color Change Speed',
-        min: 1, max: 180, value: 20, step: 1,
+        min: 1, max: MAX_COLOR_CHANGE_SPEED, value: 155, step: 1,
     }, {
         name: 'WOBBLE_X',
         label: 'Horizontal Wobble',
@@ -488,8 +489,8 @@ function calculateHsbColor(
     hueSectorAngle,
     hueSectorWidth,
 ) {
-    // TODO: fix the calculation here to make green available to low-index images.
-    const fcFactor = map(sin(frameCount / colorChangeSpeed), -1, 1, 0, numImages / 2);
+    const speed = MAX_COLOR_CHANGE_SPEED + 1 - colorChangeSpeed; // +1 to avoid div by 0.
+    const frameCountFactor = map(sin(frameCount / speed), -1, 1, 0, numImages, WITHIN_BOUNDS);
 
     let minHue = 0;
     let maxHue = 360;
@@ -501,7 +502,7 @@ function calculateHsbColor(
     }
 
     return {
-        h: map(imageIndex + fcFactor, 0, numImages, minHue, maxHue),
+        h: map((imageIndex + frameCountFactor) % numImages, 0, numImages, minHue, maxHue, WITHIN_BOUNDS),
         s: saturation,
         b: 1000,
     }
