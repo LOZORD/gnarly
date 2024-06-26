@@ -572,6 +572,11 @@ function calculateImageOffsets(doWobble, imageIndex, frameCount, wobbleX, wobble
     }
 }
 
+function blendModeName(blendModeNumber) {
+    const index = blendModeNumber < BLEND_MODES.length ? blendModeNumber : BLEND;
+    return BLEND_MODES[index];
+}
+
 function keyPressed() {
     switch (key) {
         case 'r': {
@@ -592,7 +597,10 @@ function keyPressed() {
     }
 }
 
-function blendModeName(blendModeNumber) {
-    const index = blendModeNumber < BLEND_MODES.length ? blendModeNumber : BLEND;
-    return BLEND_MODES[index];
+function mousePressed() {
+    if (mouseX > width/2) {
+        print('toggling control panel visibility');
+        controlPanel.toggleVisibility();
+        return;
+    }
 }
