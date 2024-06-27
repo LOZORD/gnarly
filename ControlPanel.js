@@ -32,6 +32,9 @@ class ControlPanel {
             sliderY += yOffset;
             this.#controls.set(name, slider);
         }
+
+        // TODO: consider adding a button to toggle visibility directly
+        // instead of relying on keyboard controls. 
     }
 
     draw() {

@@ -1,7 +1,7 @@
 'use strict';
 
 const CAMERA_OPTS = {
-    flipped: false,
+    flipped: true, // More natural for humans...
 };
 // It works on my computer...
 const CAMERA_DIMS = {
@@ -18,6 +18,8 @@ const DUPLICATE_MODES = {
 };
 const MAX_COLOR_CHANGE_SPEED = 180;
 const MAX_ROTATION_SPEED = 20;
+
+// TODO: consider adding some presets to the control panel.
 
 // Blend modes defined by P5 for this 2D canvas.
 // It's declared in setup since the variables might not exist at the global
