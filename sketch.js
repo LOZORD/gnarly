@@ -241,6 +241,14 @@ function setup() {
         name: 'ROTATION_SPEED',
         label: 'Rotation Speed',
         min: 0, max: MAX_ROTATION_SPEED, value: 0, step: 1,
+    }, {
+        name: 'FADE_BACKGROUND',
+        label: 'Fade Background Amount',
+        min: 0, max: 15, value: 0, step: 1,
+    }, {
+        name: 'FADE_BLEND_MODE',
+        label: 'Fade Background Blend Mode',
+        min: 0, max: BLEND_MODES.length - 1, value: /* BURN */ 14, step: 1,
     }]);
 
     // Clear the background.
@@ -282,6 +290,8 @@ function draw() {
         DUPLICATE_PADDING,
         DUPLICATE_ROWS,
         DUPLICATE_SCALE_FACTOR,
+        FADE_BACKGROUND,
+        FADE_BLEND_MODE,
         FILTER_BLUR_AMOUNT,
         FILTER_DILATE_ENABLED,
         FILTER_ERODE_ENABLED,
@@ -318,6 +328,16 @@ function draw() {
     // image drawing choppy otherwise.
     if (REDRAW_BACKGROUND) {
         background(0);
+    } else if (FADE_BACKGROUND) { 
+        // Use blend modes to remove any sort of "ghost" images
+        // that might otherwise remain.
+        // See https://stackoverflow.com/a/68979818 for context. 
+        // REMOVE and BURN seem to do the best at this.     
+        blendMode(blendModeName(FADE_BLEND_MODE));
+        // Incorporate some noise for fun :)
+        background(0, noise(frameCount) * FADE_BACKGROUND);
+        // Reset to the default. It may be modified below.
+        blendMode(BLEND);
     } else if (frameCount % FRAME_CAPTURE_RATE != 0) {
         return;
     }
