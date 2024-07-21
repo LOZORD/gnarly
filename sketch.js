@@ -335,7 +335,13 @@ function draw() {
         // REMOVE and BURN seem to do the best at this.     
         blendMode(blendModeName(FADE_BLEND_MODE));
         // Incorporate some noise for fun :)
-        background(0, noise(frameCount) * FADE_BACKGROUND);
+        const alpha = noise(FRAME_COUNT) * FADE_BACKGROUND;
+        // Also color the background!
+        // Some blend mode allow you to see the changing background color
+        // better than others.
+        colorMode(HSB, 360, 100, 100, 100);
+        const hue = map(cos(FRAME_COUNT/36), -1, 1, 0, 360);
+        background(hue, 100, 100, alpha);
         // Reset to the default. It may be modified below.
         blendMode(BLEND);
     } else if (frameCount % FRAME_CAPTURE_RATE != 0) {
