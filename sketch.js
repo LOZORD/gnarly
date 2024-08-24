@@ -31,6 +31,8 @@ let canvas;
 let controlPanel;
 let imageBuffer;
 
+let currentControlPayload = {};
+
 function setup() {
     // Set up the webcam.
     cam = createCapture(VIDEO, CAMERA_OPTS, (stream) => {
@@ -256,6 +258,21 @@ function setup() {
     // this should be the only `background` call that is not controlled/enabled
     // elsewhere.
     background(0);
+
+    const channel = new BroadcastChannel('gnarly');
+
+    channel.onmessage = (event) => {
+        console.log('got channel evennnt: ', event);
+        currentControlPayload = structuredClone(event.data);
+    };
+
+    openControlPanelWindow();
+}
+
+function openControlPanelWindow() {
+    const newWindow = window.open('./control.html', null, 'popup=true');
+    console.log('got new window: ', newWindow);
+    return newWindow;
 }
 
 
@@ -474,7 +491,15 @@ function draw() {
         // Draw the main image.
         image(img, imageX, imageY, imageWidth, imageHeight);
     }
+
+    textFont('monospace', 25);
+    fill('white');
+    text(JSON.stringify(currentControlPayload), width/3, height/3);
 }
+
+// For future investigation:
+// fade background amnt 9
+// fade background mode 11 - rainbow changing background
 
 function captureImage(pixelationEnabled, pixelationDensity, bwClamingAmount, filters) {
     let newImage = cam.get(0, 0, CAMERA_DIMS.width, CAMERA_DIMS.height);

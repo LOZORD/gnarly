@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Control Panel</title>
+    </head>
+    <body>
+        <h1>Control world!</h1>
+        <button id="broadcast-button">Click me!</button>
+    </body>
+    <script>
+        const channel = new BroadcastChannel('gnarly');
+
+        const btn = document.getElementById('broadcast-button');
+
+        btn.addEventListener('click', () => {
+            console.log('hellooo');
+            channel.postMessage({
+                'date': new Date(),
+            });
+        });
+    </script>
+</html>
