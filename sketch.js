@@ -75,7 +75,7 @@ function setup() {
     }, {
         name: 'MAX_BUFFER_SIZE',
         label: 'Max Image Buffer Size',
-        min: 2, max: 50, value: 15, step: 1,
+        min: 1, max: 50, value: 15, step: 1,
     }, {
         name: 'MAX_SHRINK_PERCENTAGE',
         label: 'Max Image Shrink Factor (%)',
