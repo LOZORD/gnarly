@@ -31,6 +31,8 @@ let canvas;
 let controlPanel;
 let imageBuffer;
 
+/** The BroadcastChannel for control window communication. */
+let channel;
 let currentControlPayload = {};
 
 function setup() {
@@ -259,10 +261,10 @@ function setup() {
     // elsewhere.
     background(0);
 
-    const channel = new BroadcastChannel('gnarly');
+    channel = new BroadcastChannel('gnarly');
 
     channel.onmessage = (event) => {
-        console.log('got channel evennnt: ', event);
+        console.log('got channel event: ', event);
         currentControlPayload = structuredClone(event.data);
     };
 
@@ -279,6 +281,9 @@ function openControlPanelWindow() {
 function draw() {
     // Just alias the variable to a const.
     const FRAME_COUNT = frameCount;
+    channel.postMessage({
+        'frameRate': frameRate(),
+    });
 
     // Always update the control panel (even regardless of visibility).
     controlPanel.draw();

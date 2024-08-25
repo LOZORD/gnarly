@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Control Panel</title>
+        <title>GNARLY CONTROL PANEL</title>
         <style>
             body {
                 background-color: black;
@@ -12,6 +12,10 @@
     </head>
     <body>
         <h1>Control world!</h1>
+        <div>
+            <span>Frame rate:</span>
+            <span id="frame-rate-value">xxx</span>
+        </div>
         <form id="main-form">
             <input id="slider1" type="range" name="foo" value="3" min="0" max="10"/>
             <input id="slider2" type="range" name="bar" value="7" min="0" max="10"/>
@@ -48,6 +52,24 @@
                 'control': getFormData(),
                 'date': new Date(),
             });
+        };
+
+        const MAX_FRAME_RATE_BUFFER_SIZE = 120;
+        const frameRateBuffer = [];
+        const frameRateSpan = document.getElementById('frame-rate-value');
+
+        channel.onmessage = (event) => {
+            // console.log(event.data);
+
+            if ('frameRate' in event.data) {
+                frameRateBuffer.push(event.data['frameRate']);
+                if (frameRateBuffer.length > MAX_FRAME_RATE_BUFFER_SIZE) {
+                    frameRateBuffer.shift();
+                }
+
+                const averageFrameRate = frameRateBuffer.reduce((prev, curr) => prev+curr, 0) / frameRateBuffer.length;
+                frameRateSpan.innerText = `${averageFrameRate.toFixed(2)} FPS`;
+            }
         };
     </script>
 </html>
