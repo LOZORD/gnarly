@@ -1,75 +1,94 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>GNARLY CONTROL PANEL</title>
-        <style>
-            body {
-                background-color: black;
-                font-family: 'Courier New', Courier, monospace;
-                color: gold;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Control world!</h1>
-        <div>
-            <span>Frame rate:</span>
-            <span id="frame-rate-value">xxx</span>
-        </div>
-        <form id="main-form">
-            <input id="slider1" type="range" name="foo" value="3" min="0" max="10"/>
-            <input id="slider2" type="range" name="bar" value="7" min="0" max="10"/>
-        </form>
-        <button id="broadcast-button">Click me!</button>
-    </body>
-    <script>
-        console.log('hello from control window');
 
-        const form = document.getElementById('main-form');
-
-        function getFormData() {
-            const formData = {};
-            for (const input of form.elements) {
-                formData[input.name] = parseFloat(input.value);
-            }
-            return formData;
+<head>
+    <title>GNARLY CONTROL PANEL</title>
+    <style>
+        body {
+            background-color: black;
+            font-family: 'Courier New', Courier, monospace;
+            color: gold;
         }
+    </style>
+    <script src="controls.js"></script>
+</head>
 
-        const channel = new BroadcastChannel('gnarly');
+<body>
+    <h1>Control world!</h1>
+    <div>
+        <span>Frame rate:</span>
+        <span id="frame-rate-value">xxx</span>
+    </div>
+    <form id="main-form">
+        <input id="slider1" type="range" name="foo" value="3" min="0" max="10" />
+        <input id="slider2" type="range" name="bar" value="7" min="0" max="10" />
+    </form>
+    <button id="broadcast-button">Click me!</button>
+</body>
+<script>
+    console.log('hello from control window');
 
-        const btn = document.getElementById('broadcast-button');
+    const params = new URLSearchParams(window.location.search);
 
-        btn.addEventListener('click', () => {
-            channel.postMessage({
-                'control': getFormData(),
-                'date': new Date(),
-            });
+    console.log('got params', params);
+
+
+    const CONTROL_CONFIGURATION = getControlConfiguration(
+        +params.get('windowWidth'),
+        +params.get('windowHeight'),
+        +params.get('camWidth'),
+        +params.get('camHeight'),
+    );
+
+
+    console.log('got control configuration?', !!getControlConfiguration());
+
+    const form = document.getElementById('main-form');
+
+    function getFormData() {
+        const formData = {};
+        for (const input of form.elements) {
+            formData[input.name] = parseFloat(input.value);
+        }
+        return formData;
+    }
+
+    const channel = new BroadcastChannel('gnarly');
+
+    const btn = document.getElementById('broadcast-button');
+
+    btn.addEventListener('click', () => {
+        channel.postMessage({
+            'control': getFormData(),
+            'date': new Date(),
         });
+    });
 
-        form.oninput = (event) => {
-            event.preventDefault();
-            channel.postMessage({
-                'control': getFormData(),
-                'date': new Date(),
-            });
-        };
+    form.oninput = (event) => {
+        event.preventDefault();
+        channel.postMessage({
+            'control': getFormData(),
+            'date': new Date(),
+        });
+    };
 
-        const MAX_FRAME_RATE_BUFFER_SIZE = 120;
-        const frameRateBuffer = [];
-        const frameRateSpan = document.getElementById('frame-rate-value');
+    const MAX_FRAME_RATE_BUFFER_SIZE = 120;
+    const frameRateBuffer = [];
+    const frameRateSpan = document.getElementById('frame-rate-value');
 
-        channel.onmessage = (event) => {
-            // console.log(event.data);
+    channel.onmessage = (event) => {
+        // console.log(event.data);
 
-            if ('frameRate' in event.data) {
-                frameRateBuffer.push(event.data['frameRate']);
-                if (frameRateBuffer.length > MAX_FRAME_RATE_BUFFER_SIZE) {
-                    frameRateBuffer.shift();
-                }
-
-                const averageFrameRate = frameRateBuffer.reduce((prev, curr) => prev+curr, 0) / frameRateBuffer.length;
-                frameRateSpan.innerText = `${averageFrameRate.toFixed(2)} FPS`;
+        if ('frameRate' in event.data) {
+            frameRateBuffer.push(event.data['frameRate']);
+            if (frameRateBuffer.length > MAX_FRAME_RATE_BUFFER_SIZE) {
+                frameRateBuffer.shift();
             }
-        };
-    </script>
+
+            const averageFrameRate = frameRateBuffer.reduce((prev, curr) => prev + curr, 0) / frameRateBuffer.length;
+            frameRateSpan.innerText = `${averageFrameRate.toFixed(2)} FPS`;
+        }
+    };
+</script>
+
 </html>
