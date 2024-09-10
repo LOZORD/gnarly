@@ -26,10 +26,6 @@ class SliderInput {
         this.#max = max;
         this.#min = min;
 
-        if (isNaN(this.#max)) {
-            console.error(`${name} produced bad max ${max} min ${min}`);
-        }
-
         this.#parentForm = parentForm;
         this.#container = document.createElement('div');
         this.#container.classList.add('input-container');
@@ -73,6 +69,44 @@ class SliderInput {
     }
 }
 
+class PresetButton {
+    #config;
+    #container;
+    #parentContainer;
+    #button;
+
+    constructor(parentContainer, name, config, form) {
+        this.#parentContainer = parentContainer;
+        this.#config = config;
+        this.#container = document.createElement('div');
+        this.#container.classList.add('present-button-container');
+        this.#parentContainer.appendChild(this.#container);
+
+        this.#button = document.createElement('button');
+        this.#button.type = 'button';
+        this.#button.setAttribute('form', form.id);
+        this.#button.classList.add('present');
+        this.#button.textContent = name;
+        this.#button.onclick = (event) => {
+            event.preventDefault();
+            console.log(`button [${name}] clicked`);
+            this.applyConfig();
+        };
+        this.#container.appendChild(this.#button);
+    }
+
+    applyConfig() {
+        const form = this.#button.form;
+        console.log('applyConfig: form', form, this.#config);
+        for (const [name, value] of Object.entries(this.#config)) {
+            const input = form.querySelector(`[name=${name}]`)
+            input.value = value;
+        }
+        // FIXME: why isn't this working??
+        collectAndSubmitControls();
+    }
+}
+
 function populateSliders(form, controlConfig) {
     const sliders = [];
 
@@ -92,14 +126,38 @@ function populateSliders(form, controlConfig) {
 }
 
 function populateForm(form, controlConfig) {
+    // TODO: We "discard" the SliderInput objects returned here,
+    // but maybe we could do something useful with them?
     populateSliders(form, controlConfig);
 }
+
+function populatePresets(presetConfigs, presetParentContainer, form) {
+    const presets = [];
+    
+    for (const [name, config] of Object.entries(presetConfigs)) {
+        presets.push(
+            new PresetButton(presetParentContainer, name, config, form)
+        );
+    }
+
+    return presets;
+ }
 
 function collectAndSubmitControls(form, channel) {
     channel.postMessage({
         'control': getFormData(form),
         'date': new Date(),
     });
+}
+
+function makeDefaultPreset(controlConfiguration) {
+    const ret = {};
+
+    for (const config of controlConfiguration) {
+        ret[config.name] = config.value;
+    }
+
+    return ret;
 }
 
 const MAX_FRAME_RATE_BUFFER_SIZE = 120;
@@ -111,7 +169,6 @@ function main() {
 
     console.log('got params', params);
 
-
     const CONTROL_CONFIGURATION = getControlConfiguration({
         windowWidth: +params.get('windowWidth'),
         windowHeight: +params.get('windowHeight'),
@@ -121,11 +178,23 @@ function main() {
         camHeight: +params.get('camHeight'),
     });
 
+    const DEFAULT_PRESET = makeDefaultPreset(CONTROL_CONFIGURATION);
+    const presetConfigs = {
+        'Default': DEFAULT_PRESET,
+        'Plain Video': plainVideoPreset(structuredClone(DEFAULT_PRESET)),
+        'Peter Max': peterMaxPreset(structuredClone(DEFAULT_PRESET)),
+        'Motorik': motorikPreset(structuredClone(DEFAULT_PRESET)),
+        'Motorik Cyan': motorikCyanPreset(structuredClone(DEFAULT_PRESET)),
+        'Echoes': echoesPreset(structuredClone(DEFAULT_PRESET)),
+    };
+
     console.log('got control configuration?', CONTROL_CONFIGURATION);
 
     const form = document.getElementById('main-form');
 
     populateForm(form, CONTROL_CONFIGURATION);
+    const presetContainer = document.getElementById('preset-container');
+    populatePresets(presetConfigs, presetContainer, form);
 
     const channel = new BroadcastChannel('gnarly');
 
