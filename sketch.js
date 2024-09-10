@@ -50,14 +50,14 @@ function setup() {
         BURN,       // 14
     ];
 
-    controlPanel = new ControlPanel(getControlConfiguration(
-        windowWidth,
-        windowHeight,
-        width,
-        height,
-        cam.width,
-        cam.height,
-    ));
+    controlPanel = new ControlPanel(getControlConfiguration({
+        windowWidth: windowWidth,
+        windowHeight: windowHeight,
+        canvasWidth: width,
+        canvasHeight: height,
+        camWidth: cam.width,
+        camHeight: cam.height,
+    }));
 
     // Clear the background.
     // Since we like having older image artifacts remain,
@@ -309,9 +309,9 @@ function draw() {
         image(img, imageX, imageY, imageWidth, imageHeight);
     }
 
-    textFont('monospace', 25);
+    textFont('monospace', 10);
     fill('white');
-    text(JSON.stringify(currentControlPayload, null, 2), width/3, height/3);
+    text(JSON.stringify(currentControlPayload, null, 2), width / 3, 5);
 }
 
 // For future investigation:

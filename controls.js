@@ -76,12 +76,14 @@ const WOBBLE_Y = 'WOBBLE_Y';
 
 /** Returns the control configuration. We use a function here so that we can delay usage of p5 constants. */
 function getControlConfiguration(
-    windowWidth, 
-    windowHeight,
-    canvasWidth,
-    canvasHeight,
-    camWidth,
-    camHeight,
+    {
+        windowWidth,
+        windowHeight,
+        canvasWidth,
+        canvasHeight,
+        camWidth,
+        camHeight,
+    }
 ) {
     const CONTROLS = [{
         name: REDRAW_BACKGROUND,
@@ -269,7 +271,7 @@ function getControlConfiguration(
     }, {
         name: FADE_BLEND_MODE,
         label: 'Fade Background Blend Mode',
-        min: 0, max: NUM_BLEND_MODES-1,
+        min: 0, max: NUM_BLEND_MODES - 1,
         value: /* BURN */ 14, step: 1,
     }];
 

@@ -16,10 +16,17 @@ class SliderInput {
     #container;
     #min;
     #max;
+    #dataSpan;
+    #valueSpan;
+    #rangeSpan;
 
     constructor(parentForm, name, label, min, max, initialValue, step, enabled) {
         this.#max = max;
         this.#min = min;
+
+        if (isNaN(this.#max)) {
+            console.error(`${name} produced bad max ${max} min ${min}`);
+        }
 
         this.#parentForm = parentForm;
         this.#container = document.createElement('div');
@@ -35,12 +42,32 @@ class SliderInput {
         this.#inputElement.classList.add('slider');
         this.#inputElement.type = 'range';
         this.#inputElement.name = name;
-        this.#inputElement.value = initialValue;
         this.#inputElement.min = this.#min;
         this.#inputElement.max = this.#max;
+        // Set the value _after_ min and max have been set so that it renders
+        // with the correct position.
+        this.#inputElement.value = initialValue;
         this.#inputElement.step = step;
         this.#inputElement.disabled = !enabled;
         this.#container.appendChild(this.#inputElement);
+
+        this.#dataSpan = document.createElement('span');
+        this.#dataSpan.classList.add('data');
+        this.#container.appendChild(this.#dataSpan);
+
+        this.#valueSpan = document.createElement('span');
+        this.#valueSpan.classList.add('value');
+        this.#valueSpan.innerText = initialValue;
+        this.#dataSpan.appendChild(this.#valueSpan);
+
+        this.#rangeSpan = document.createElement('span');
+        this.#rangeSpan.classList.add('range');
+        this.#rangeSpan.innerText = `[${this.#min}, ${this.#max}] @ ${step}`;
+        this.#dataSpan.appendChild(this.#rangeSpan);
+
+        this.#inputElement.oninput = () => {
+            this.#valueSpan.innerText = this.#inputElement.value;
+        };
     }
 }
 
@@ -76,14 +103,16 @@ function main() {
     console.log('got params', params);
 
 
-    const CONTROL_CONFIGURATION = getControlConfiguration(
-        +params.get('windowWidth'),
-        +params.get('windowHeight'),
-        +params.get('camWidth'),
-        +params.get('camHeight'),
-    );
+    const CONTROL_CONFIGURATION = getControlConfiguration({
+        windowWidth: +params.get('windowWidth'),
+        windowHeight: +params.get('windowHeight'),
+        canvasWidth: +params.get('canvasWidth'),
+        canvasHeight: +params.get('canvasHeight'),
+        camWidth: +params.get('camWidth'),
+        camHeight: +params.get('camHeight'),
+    });
 
-    console.log('got control configuration?', !!getControlConfiguration());
+    console.log('got control configuration?', CONTROL_CONFIGURATION);
 
     const form = document.getElementById('main-form');
 
