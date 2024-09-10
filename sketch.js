@@ -1,6 +1,5 @@
 'use strict';
 
-// TODO: consider adding some presets to the control panel.
 
 // TODO: consider incorporating a WebGL view like
 // https://editor.p5js.org/ljrudberg/sketches/3hM21zJVU.
@@ -12,7 +11,6 @@ let BLEND_MODES;
 let cam;
 let cameraRunning = false;
 let canvas;
-let controlPanel;
 let imageBuffer;
 
 /** The BroadcastChannel for control window communication. */
@@ -49,15 +47,6 @@ function setup() {
         DODGE,      // 13
         BURN,       // 14
     ];
-
-    controlPanel = new ControlPanel(getControlConfiguration({
-        windowWidth: windowWidth,
-        windowHeight: windowHeight,
-        canvasWidth: width,
-        canvasHeight: height,
-        camWidth: cam.width,
-        camHeight: cam.height,
-    }));
 
     // Clear the background.
     // Since we like having older image artifacts remain,
@@ -97,9 +86,6 @@ function draw() {
     channel.postMessage({
         'frameRate': frameRate(),
     });
-
-    // Always update the control panel (even regardless of visibility).
-    controlPanel.draw();
 
     // Just show something while the camera is getting ready.
     if (!cameraRunning) {
@@ -313,10 +299,6 @@ function draw() {
         // Draw the main image.
         image(img, imageX, imageY, imageWidth, imageHeight);
     }
-
-    textFont('monospace', 10);
-    fill('white');
-    text(JSON.stringify(currentControlPayload, null, 2), width / 3, 5);
 }
 
 // For future investigation:
@@ -456,13 +438,10 @@ function blendModeName(blendModeNumber) {
 function keyPressed() {
     switch (key) {
         case 'r': {
+            // TODO: This might not work well with the control window setup now.
+            // Since the control uses values based on canvas size for min/max.
             print('resizing');
             resizeCanvas(windowWidth, windowHeight);
-            return;
-        }
-        case 'c': {
-            print('togging control panel visibility');
-            controlPanel.toggleVisibility();
             return;
         }
         case 's': {
@@ -470,13 +449,5 @@ function keyPressed() {
             saveCanvas(`canvas-${Date.now()}.png`);
             return;
         }
-    }
-}
-
-function mousePressed() {
-    if (mouseX > width / 2) {
-        print('toggling control panel visibility');
-        controlPanel.toggleVisibility();
-        return;
     }
 }

@@ -1,6 +1,8 @@
 /* Logic for the control panel window. */
 'use strict';
 
+// TODO: consider adding some presets to the control panel.
+
 function getFormData(form) {
     const formData = {};
     for (const input of form.elements) {
