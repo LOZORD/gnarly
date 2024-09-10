@@ -93,6 +93,13 @@ function populateForm(form, controlConfig) {
     populateSliders(form, controlConfig);
 }
 
+function collectAndSubmitControls(form, channel) {
+    channel.postMessage({
+        'control': getFormData(form),
+        'date': new Date(),
+    });
+}
+
 const MAX_FRAME_RATE_BUFFER_SIZE = 120;
 
 function main() {
@@ -127,11 +134,11 @@ function main() {
 
     form.oninput = (event) => {
         event.preventDefault();
-        channel.postMessage({
-            'control': getFormData(form),
-            'date': new Date(),
-        });
+        collectAndSubmitControls(form, channel);
     };
+
+    // Send an initial control submission to get things started in the canvas.
+    collectAndSubmitControls(form, channel);
 
     const frameRateBuffer = [];
     const frameRateSpan = document.getElementById('frame-rate-value');

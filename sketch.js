@@ -70,6 +70,7 @@ function setup() {
     channel.onmessage = (event) => {
         console.log('got channel event: ', event);
         currentControlPayload = structuredClone(event.data);
+        console.log('current control payload: ', currentControlPayload);
     };
 
     openControlPanelWindow();
@@ -107,8 +108,12 @@ function draw() {
         return;
     }
 
-    // Load all of the values from our control panel.
-    const panelValueMap = controlPanel.valuesMap();
+    if (!('control' in currentControlPayload)) {
+        if (frameCount % 200 == 0) {
+            console.warn('current control payload has no `control` key');
+        }
+    }
+
     const {
         BLEND_MODE,
         BW_CLAMPING,
@@ -156,13 +161,13 @@ function draw() {
         WOBBLE_ENABLED,
         WOBBLE_X,
         WOBBLE_Y,
-    } = Object.fromEntries(panelValueMap);
+    } = (currentControlPayload.control || {});
 
     // Use `else if` for the capture rate vs REDRAW_BACKGROUND because it will make the
     // image drawing choppy otherwise.
     if (REDRAW_BACKGROUND) {
         background(0);
-    } else if (FADE_BACKGROUND) { 
+    } else if (FADE_BACKGROUND) {
         // Use blend modes to remove any sort of "ghost" images
         // that might otherwise remain.
         // See https://stackoverflow.com/a/68979818 for context. 
@@ -174,7 +179,7 @@ function draw() {
         // Some blend mode allow you to see the changing background color
         // better than others.
         colorMode(HSB, 360, 100, 100, 100);
-        const hue = map(cos(FRAME_COUNT/36), -1, 1, 0, 360);
+        const hue = map(cos(FRAME_COUNT / 36), -1, 1, 0, 360);
         background(hue, 100, 100, alpha);
         // Reset to the default. It may be modified below.
         blendMode(BLEND);
@@ -469,7 +474,7 @@ function keyPressed() {
 }
 
 function mousePressed() {
-    if (mouseX > width/2) {
+    if (mouseX > width / 2) {
         print('toggling control panel visibility');
         controlPanel.toggleVisibility();
         return;
