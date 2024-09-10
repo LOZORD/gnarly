@@ -311,7 +311,7 @@ function draw() {
 
     textFont('monospace', 25);
     fill('white');
-    text(JSON.stringify(currentControlPayload), width/3, height/3);
+    text(JSON.stringify(currentControlPayload, null, 2), width/3, height/3);
 }
 
 // For future investigation:
