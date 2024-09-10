@@ -277,3 +277,28 @@ function getControlConfiguration(
 
     return CONTROLS;
 }
+
+function plainVideoPreset(defaultConfig) {
+    const ret = structuredClone(defaultConfig);
+
+    ret.TINT_IMAGES = 0;
+    ret.MAX_BUFFER_SIZE = 1;
+
+    return ret;
+}
+
+function peterMaxPreset(defaultConfig) {
+    return structuredClone(defaultConfig); // TODO.
+}
+
+function motorikPreset(defaultConfig) {
+    return structuredClone(defaultConfig); // TODO.
+}
+
+function motorikCyanPreset(defaultConfig) {
+    return structuredClone(defaultConfig); // TODO.
+}
+
+function echoesPreset(defaultConfig) {
+    return structuredClone(defaultConfig); // TODO.
+}
