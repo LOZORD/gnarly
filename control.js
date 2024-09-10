@@ -32,6 +32,7 @@ class SliderInput {
         this.#container.appendChild(this.#labelSpan);
 
         this.#inputElement = document.createElement('input');
+        this.#inputElement.classList.add('slider');
         this.#inputElement.type = 'range';
         this.#inputElement.name = name;
         this.#inputElement.value = initialValue;
@@ -65,6 +66,8 @@ function populateForm(form, controlConfig) {
     populateSliders(form, controlConfig);
 }
 
+const MAX_FRAME_RATE_BUFFER_SIZE = 120;
+
 function main() {
     console.log('hello from control window');
 
@@ -93,15 +96,6 @@ function main() {
         'active': true,
     });
 
-    const btn = document.getElementById('broadcast-button');
-
-    btn.addEventListener('click', () => {
-        channel.postMessage({
-            'control': getFormData(form),
-            'date': new Date(),
-        });
-    });
-
     form.oninput = (event) => {
         event.preventDefault();
         channel.postMessage({
@@ -110,13 +104,10 @@ function main() {
         });
     };
 
-    const MAX_FRAME_RATE_BUFFER_SIZE = 120;
     const frameRateBuffer = [];
     const frameRateSpan = document.getElementById('frame-rate-value');
 
     channel.onmessage = (event) => {
-        // console.log(event.data);
-
         if ('frameRate' in event.data) {
             frameRateBuffer.push(event.data['frameRate']);
             if (frameRateBuffer.length > MAX_FRAME_RATE_BUFFER_SIZE) {
