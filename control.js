@@ -9,6 +9,62 @@ function getFormData(form) {
     return formData;
 }
 
+class SliderInput {
+    #parentForm;
+    #labelSpan;
+    #inputElement;
+    #container;
+    #min;
+    #max;
+
+    constructor(parentForm, name, label, min, max, initialValue, step, enabled) {
+        this.#max = max;
+        this.#min = min;
+
+        this.#parentForm = parentForm;
+        this.#container = document.createElement('div');
+        this.#container.classList.add('input-container');
+        this.#parentForm.appendChild(this.#container);
+
+        this.#labelSpan = document.createElement('span');
+        this.#labelSpan.classList.add('label');
+        this.#labelSpan.innerText = label;
+        this.#container.appendChild(this.#labelSpan);
+
+        this.#inputElement = document.createElement('input');
+        this.#inputElement.type = 'range';
+        this.#inputElement.name = name;
+        this.#inputElement.value = initialValue;
+        this.#inputElement.min = this.#min;
+        this.#inputElement.max = this.#max;
+        this.#inputElement.step = step;
+        this.#inputElement.disabled = !enabled;
+        this.#container.appendChild(this.#inputElement);
+    }
+}
+
+function populateSliders(form, controlConfig) {
+    const sliders = [];
+
+    const sortedConfigObjs = controlConfig.sort((a, b) => a.name.localeCompare(b.name));
+
+    for (const config of sortedConfigObjs) {
+        sliders.push(
+            new SliderInput(form,
+                config.name, config.label,
+                config.min, config.max,
+                config.value, config.step,
+                !config.disabled)
+        );
+    }
+
+    return sliders;
+}
+
+function populateForm(form, controlConfig) {
+    populateSliders(form, controlConfig);
+}
+
 function main() {
     console.log('hello from control window');
 
@@ -27,6 +83,8 @@ function main() {
     console.log('got control configuration?', !!getControlConfiguration());
 
     const form = document.getElementById('main-form');
+
+    populateForm(form, CONTROL_CONFIGURATION);
 
     const channel = new BroadcastChannel('gnarly');
 
