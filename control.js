@@ -42,10 +42,10 @@ class SliderInput {
         this.#inputElement.name = name;
         this.#inputElement.min = this.#min;
         this.#inputElement.max = this.#max;
-        // Set the value _after_ min and max have been set so that it renders
+        this.#inputElement.step = step;
+        // Set the value _after_ min, max, and step have been set so that it renders
         // with the correct position.
         this.#inputElement.value = initialValue;
-        this.#inputElement.step = step;
         this.#inputElement.disabled = !enabled;
         this.#container.appendChild(this.#inputElement);
 
@@ -64,6 +64,11 @@ class SliderInput {
         this.#dataSpan.appendChild(this.#rangeSpan);
 
         this.#inputElement.oninput = () => {
+            this.#valueSpan.innerText = this.#inputElement.value;
+        };
+
+        this.#inputElement.onchange = (event) => {
+            event.preventDefault();
             this.#valueSpan.innerText = this.#inputElement.value;
         };
     }
@@ -99,11 +104,13 @@ class PresetButton {
         const form = this.#button.form;
         console.log('applyConfig: form', form, this.#config);
         for (const [name, value] of Object.entries(this.#config)) {
-            const input = form.querySelector(`[name=${name}]`)
+            const input = form.querySelector(`[name=${name}]`);
+            console.assert(!!input, 'failed to get input with name ', name);
             input.value = value;
         }
-        // FIXME: why isn't this working??
-        collectAndSubmitControls();
+        // TODO: I think only one of these is needed (input most likely).
+        form.dispatchEvent(new Event('change'), { bubbles: true });
+        form.dispatchEvent(new Event('input'), { bubbles: true });
     }
 }
 
@@ -133,7 +140,7 @@ function populateForm(form, controlConfig) {
 
 function populatePresets(presetConfigs, presetParentContainer, form) {
     const presets = [];
-    
+
     for (const [name, config] of Object.entries(presetConfigs)) {
         presets.push(
             new PresetButton(presetParentContainer, name, config, form)
@@ -141,7 +148,7 @@ function populatePresets(presetConfigs, presetParentContainer, form) {
     }
 
     return presets;
- }
+}
 
 function collectAndSubmitControls(form, channel) {
     channel.postMessage({
@@ -186,6 +193,13 @@ function main() {
         'Motorik': motorikPreset(structuredClone(DEFAULT_PRESET)),
         'Motorik Cyan': motorikCyanPreset(structuredClone(DEFAULT_PRESET)),
         'Echoes': echoesPreset(structuredClone(DEFAULT_PRESET)),
+        'Red Sector': {},
+        'Green Sector': {}, // TODO: add this and others below.
+        'Blue Sector': {},
+        'Yellow Sector': {},
+        'Cyan Sector': {},
+        'Magenta Sector': {},
+        'Block Print': {},
     };
 
     console.log('got control configuration?', CONTROL_CONFIGURATION);
