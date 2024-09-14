@@ -278,27 +278,65 @@ function getControlConfiguration(
     return CONTROLS;
 }
 
+/** Just a simple, plain view of the webcame with default-ish settings. */
 function plainVideoPreset(defaultConfig) {
     const ret = structuredClone(defaultConfig);
 
     ret.TINT_IMAGES = 0;
     ret.MAX_BUFFER_SIZE = 1;
+    ret.FADE_BACKGROUND = 10;
 
     return ret;
 }
 
+/** Fun with the difference blend. and lissajous. */
 function peterMaxPreset(defaultConfig) {
     return structuredClone(defaultConfig); // TODO.
 }
 
+/** Fun with invert and threshhold clamping. */
 function motorikPreset(defaultConfig) {
     return structuredClone(defaultConfig); // TODO.
 }
 
+/** Like `motorikPreset` but with a hue setting of cyan. */
 function motorikCyanPreset(defaultConfig) {
     return structuredClone(defaultConfig); // TODO.
 }
 
+/** Fun with the min/max settings and lissajous. */
 function echoesPreset(defaultConfig) {
-    return structuredClone(defaultConfig); // TODO.
+    return structuredClone(defaultConfig); // TODO, here and below.
+}
+
+/** Sixty degree hue clamp around red. */
+function redSectorPreset(defaultConfig) {
+    return structuredClone(defaultConfig);
+}
+
+/** Sixty degree hue clamp around green. */
+function greenSectorPreset(defaultConfig) {
+    return structuredClone(defaultConfig);
+}
+
+/** Sixty degree hue clamp around blue. */
+function blueSectorPreset(defaultConfig) {
+    return structuredClone(defaultConfig);
+}
+
+function yellowSectorPreset(defaultConfig) {
+    return structuredClone(defaultConfig);
+}
+
+function cyanSectorPreset(defaultConfig) {
+    return structuredClone(defaultConfig);
+}
+
+function magentaSectorPreset(defaultConfig) {
+    return structuredClone(defaultConfig);
+}
+
+/** Preset for getting a posterized, black-and-white, threshhold-ed display. */
+function blockPrintPreset(defaultConfig) {
+    return structuredClone(defaultConfig);
 }
