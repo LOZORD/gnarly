@@ -39,12 +39,24 @@
             font-weight: bold;
             margin: 0em 0.1em;
         }
+
+        /* Render the buttons nicely using a flex layout. */
+        div#preset-container {
+            display: flex;
+            flex-flow: wrap;
+        }
+
+        /* Make the buttons big enough and take up even space. */
+        div#preset-container button {
+            width: 6em;
+            height: 100%;
+        }
     </style>
     <script src="controls.js"></script>
 </head>
 
 <body>
-    <h1 id="title">Control world!</h1>
+    <h1 id="title">LOZORD's Gnarly Control World!</h1>
     <div id="frame-rate-container">
         <span>Frame rate:</span>
         <span id="frame-rate-value">xxx</span>
