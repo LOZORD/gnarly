@@ -303,7 +303,7 @@ function peterMaxPreset(cfg, { windowWidth, windowHeight }) {
     return cfg;
 }
 
-function peterMax2Preset(cfg, { windowWidth, windowHeight }) {
+function darkSidePreset(cfg, { windowWidth, windowHeight }) {
     cfg.BLEND_MODE = 9; // DIFFERENCE
     cfg.BW_CLAMPING = 88;
     // Double hourglass curve.
@@ -315,10 +315,33 @@ function peterMax2Preset(cfg, { windowWidth, windowHeight }) {
     cfg.LISSAJOUS_CONSTANT_BIG_B = windowHeight / 4;
 
     cfg.FILTER_INVERT_ENABLED = 1;
-    cfg.FADE_BACKGROUND = 0;
+    cfg.FADE_BACKGROUND = 1;
     cfg.FADE_BLEND_MODE = 7;
 
-    cfg.MIN_SHRINK_PERCENTAGE = 25;
+    cfg.MIN_SHRINK_PERCENTAGE = 50;
+    cfg.MAX_SHRINK_PERCENTAGE = 100;
+
+    return cfg;
+}
+
+function waveZonePreset(cfg, { windowWidth, windowHeight }) {
+    cfg.BLEND_MODE = 9; // DIFFERENCE
+    cfg.BW_CLAMPING = 88;
+    // Double hourglass curve.
+    cfg.LISSAJOUS_ENABLED = 1;
+    cfg.LISSAJOUS_CONSTANT_DELTA = Math.PI / 2;
+    cfg.LISSAJOUS_CONSTANT_LIL_A = 3;
+    cfg.LISSAJOUS_CONSTANT_LIL_B = 2;
+    cfg.LISSAJOUS_CONSTANT_BIG_A = windowWidth / 4;
+    cfg.LISSAJOUS_CONSTANT_BIG_B = windowHeight / 4;
+
+    cfg.FILTER_INVERT_ENABLED = 1;
+    cfg.FADE_BACKGROUND = 10;
+    cfg.FADE_BLEND_MODE = 12;
+
+    cfg.MIN_SHRINK_PERCENTAGE = 80;
+    cfg.MAX_SHRINK_PERCENTAGE = 100;
+    cfg.MAX_BUFFER_SIZE = 3;
 
     return cfg;
 }
@@ -327,6 +350,9 @@ function peterMax2Preset(cfg, { windowWidth, windowHeight }) {
 function motorikPreset(cfg) {
     cfg.FILTER_INVERT_ENABLED = 1;
     cfg.BW_CLAMPING = 77;
+    cfg.MAX_BUFFER_SIZE = 6;
+
+    cfg.WOBBLE_ENABLED = 1;
 
     return cfg;
 }
@@ -335,6 +361,9 @@ function motorikPreset(cfg) {
 function motorikCyanPreset(cfg) {
     cfg.FILTER_INVERT_ENABLED = 1;
     cfg.BW_CLAMPING = 77;
+    cfg.MAX_BUFFER_SIZE = 6;
+
+    cfg.WOBBLE_ENABLED = 1;
 
     cfg.HUE_SECTOR_ANGLE = 180;
     cfg.HUE_SECTOR_WIDTH = 50;
@@ -348,7 +377,7 @@ function echoesPreset(cfg) {
     cfg.MIN_SHRINK_PERCENTAGE = 99;
 
     cfg.WOBBLE_ENABLED = 1;
-    cfg.WOBBLE_X = 1.9
+    cfg.WOBBLE_X = 9.1
     cfg.WOBBLE_Y = 9.4;
 
     return cfg;
