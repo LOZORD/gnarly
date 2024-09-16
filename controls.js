@@ -279,64 +279,133 @@ function getControlConfiguration(
 }
 
 /** Just a simple, plain view of the webcame with default-ish settings. */
-function plainVideoPreset(defaultConfig) {
-    const ret = structuredClone(defaultConfig);
+function plainVideoPreset(cfg) {
 
-    ret.TINT_IMAGES = 0;
-    ret.MAX_BUFFER_SIZE = 1;
-    ret.FADE_BACKGROUND = 10;
+    cfg.TINT_IMAGES = 0;
+    cfg.MAX_BUFFER_SIZE = 1;
+    cfg.FADE_BACKGROUND = 10;
 
-    return ret;
+    return cfg;
 }
 
-/** Fun with the difference blend. and lissajous. */
-function peterMaxPreset(defaultConfig) {
-    return structuredClone(defaultConfig); // TODO.
+/** Fun with the difference blend and lissajous. */
+function peterMaxPreset(cfg, { windowWidth, windowHeight }) {
+    cfg.BLEND_MODE = 9; // DIFFERENCE
+    cfg.BW_CLAMPING = 75;
+    // Double hourglass curve.
+    cfg.LISSAJOUS_ENABLED = 1;
+    cfg.LISSAJOUS_CONSTANT_DELTA = Math.PI / 2;
+    cfg.LISSAJOUS_CONSTANT_LIL_A = 3;
+    cfg.LISSAJOUS_CONSTANT_LIL_B = 2;
+    cfg.LISSAJOUS_CONSTANT_BIG_A = windowWidth / 4;
+    cfg.LISSAJOUS_CONSTANT_BIG_B = windowHeight / 4;
+
+    return cfg;
+}
+
+function peterMax2Preset(cfg, { windowWidth, windowHeight }) {
+    cfg.BLEND_MODE = 9; // DIFFERENCE
+    cfg.BW_CLAMPING = 88;
+    // Double hourglass curve.
+    cfg.LISSAJOUS_ENABLED = 1;
+    cfg.LISSAJOUS_CONSTANT_DELTA = Math.PI / 2;
+    cfg.LISSAJOUS_CONSTANT_LIL_A = 3;
+    cfg.LISSAJOUS_CONSTANT_LIL_B = 2;
+    cfg.LISSAJOUS_CONSTANT_BIG_A = windowWidth / 4;
+    cfg.LISSAJOUS_CONSTANT_BIG_B = windowHeight / 4;
+
+    cfg.FILTER_INVERT_ENABLED = 1;
+    cfg.FADE_BACKGROUND = 0;
+    cfg.FADE_BLEND_MODE = 7;
+
+    cfg.MIN_SHRINK_PERCENTAGE = 25;
+
+    return cfg;
 }
 
 /** Fun with invert and threshhold clamping. */
-function motorikPreset(defaultConfig) {
-    return structuredClone(defaultConfig); // TODO.
+function motorikPreset(cfg) {
+    cfg.FILTER_INVERT_ENABLED = 1;
+    cfg.BW_CLAMPING = 77;
+
+    return cfg;
 }
 
 /** Like `motorikPreset` but with a hue setting of cyan. */
-function motorikCyanPreset(defaultConfig) {
-    return structuredClone(defaultConfig); // TODO.
+function motorikCyanPreset(cfg) {
+    cfg.FILTER_INVERT_ENABLED = 1;
+    cfg.BW_CLAMPING = 77;
+
+    cfg.HUE_SECTOR_ANGLE = 180;
+    cfg.HUE_SECTOR_WIDTH = 50;
+
+    return cfg;
 }
 
 /** Fun with the min/max settings and lissajous. */
-function echoesPreset(defaultConfig) {
-    return structuredClone(defaultConfig); // TODO, here and below.
+function echoesPreset(cfg) {
+    cfg.MAX_SHRINK_PERCENTAGE = 1;
+    cfg.MIN_SHRINK_PERCENTAGE = 99;
+
+    cfg.WOBBLE_ENABLED = 1;
+    cfg.WOBBLE_X = 1.9
+    cfg.WOBBLE_Y = 9.4;
+
+    return cfg;
 }
 
 /** Sixty degree hue clamp around red. */
-function redSectorPreset(defaultConfig) {
-    return structuredClone(defaultConfig);
+function redSectorPreset(cfg) {
+    cfg.HUE_SECTOR_ANGLE = 0;
+    cfg.HUE_SECTOR_WIDTH = 60;
+
+    return cfg;
 }
 
 /** Sixty degree hue clamp around green. */
-function greenSectorPreset(defaultConfig) {
-    return structuredClone(defaultConfig);
+function greenSectorPreset(cfg) {
+    cfg.HUE_SECTOR_ANGLE = 120;
+    cfg.HUE_SECTOR_WIDTH = 60;
+
+    return cfg;
 }
 
 /** Sixty degree hue clamp around blue. */
-function blueSectorPreset(defaultConfig) {
-    return structuredClone(defaultConfig);
+function blueSectorPreset(cfg) {
+    cfg.HUE_SECTOR_ANGLE = 240;
+    cfg.HUE_SECTOR_WIDTH = 60;
+
+    return cfg;
 }
 
-function yellowSectorPreset(defaultConfig) {
-    return structuredClone(defaultConfig);
+function yellowSectorPreset(cfg) {
+    cfg.HUE_SECTOR_ANGLE = 60;
+    cfg.HUE_SECTOR_WIDTH = 60;
+
+    return cfg;
 }
 
-function cyanSectorPreset(defaultConfig) {
-    return structuredClone(defaultConfig);
+function cyanSectorPreset(cfg) {
+    cfg.HUE_SECTOR_ANGLE = 180;
+    cfg.HUE_SECTOR_WIDTH = 60;
+
+    return cfg;
 }
 
-function magentaSectorPreset(defaultConfig) {
-    return structuredClone(defaultConfig);
+function magentaSectorPreset(cfg) {
+    cfg.HUE_SECTOR_ANGLE = 300;
+    cfg.HUE_SECTOR_WIDTH = 60;
+
+    return cfg;
 }
 
 /** Preset for getting a posterized, black-and-white, threshhold-ed display. */
-function blockPrintPreset(defaultConfig) {
-    return structuredClone(defaultConfig);
+function blockPrintPreset(cfg) {
+    cfg.BW_CLAMPING = 70;
+    cfg.TINT_IMAGES = 0;
+    cfg.MAX_BUFFER_SIZE = 20;
+    cfg.MAX_SHRINK_PERCENTAGE = 100;
+    cfg.MIN_SHRINK_PERCENTAGE = 80;
+
+    return cfg;
 }
