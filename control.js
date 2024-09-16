@@ -1,8 +1,6 @@
 /* Logic for the control panel window. */
 'use strict';
 
-// TODO: consider adding some presets to the control panel.
-
 function getFormData(form) {
     const formData = {};
     for (const input of form.elements) {
@@ -64,11 +62,13 @@ class SliderInput {
         this.#dataSpan.appendChild(this.#rangeSpan);
 
         this.#inputElement.oninput = () => {
+            console.log(`input ${name} got input event!`);
             this.#valueSpan.innerText = this.#inputElement.value;
         };
 
         this.#inputElement.onchange = (event) => {
             event.preventDefault();
+            console.log(`input ${name} got change event!`);
             this.#valueSpan.innerText = this.#inputElement.value;
         };
     }
@@ -107,6 +107,11 @@ class PresetButton {
             const input = form.querySelector(`[name=${name}]`);
             console.assert(!!input, 'failed to get input with name ', name);
             input.value = value;
+            // TODO: This is a hairball hack, we should probably just call a method on the slider object instead.
+            // We should add some friendly modifier methods to the SliderInput class, like what was originally in
+            // the LabelledSlider class.
+            const valueSpan = form.querySelector(`[name=${name}] ~ span.data span.value`);
+            valueSpan.innerText = value;
         }
         // TODO: I think only one of these is needed (input most likely).
         form.dispatchEvent(new Event('change'), { bubbles: true });
@@ -176,30 +181,33 @@ function main() {
 
     console.log('got params', params);
 
-    const CONTROL_CONFIGURATION = getControlConfiguration({
+    const VARIABLE_DIMENSIONS = {
         windowWidth: +params.get('windowWidth'),
         windowHeight: +params.get('windowHeight'),
         canvasWidth: +params.get('canvasWidth'),
         canvasHeight: +params.get('canvasHeight'),
         camWidth: +params.get('camWidth'),
         camHeight: +params.get('camHeight'),
-    });
+    }
+
+    const CONTROL_CONFIGURATION = getControlConfiguration(VARIABLE_DIMENSIONS);
 
     const DEFAULT_PRESET = makeDefaultPreset(CONTROL_CONFIGURATION);
     const presetConfigs = {
         'Default': DEFAULT_PRESET,
         'Plain Video': plainVideoPreset(structuredClone(DEFAULT_PRESET)),
-        'Peter Max': peterMaxPreset(structuredClone(DEFAULT_PRESET)),
+        'Peter Max': peterMaxPreset(structuredClone(DEFAULT_PRESET), VARIABLE_DIMENSIONS),
+        'Peter Max 2': peterMax2Preset(structuredClone(DEFAULT_PRESET), VARIABLE_DIMENSIONS),
         'Motorik': motorikPreset(structuredClone(DEFAULT_PRESET)),
         'Motorik Cyan': motorikCyanPreset(structuredClone(DEFAULT_PRESET)),
         'Echoes': echoesPreset(structuredClone(DEFAULT_PRESET)),
-        'Red Sector': {},
-        'Green Sector': {}, // TODO: add this and others below.
-        'Blue Sector': {},
-        'Yellow Sector': {},
-        'Cyan Sector': {},
-        'Magenta Sector': {},
-        'Block Print': {},
+        'Red Sector': redSectorPreset(structuredClone(DEFAULT_PRESET)),
+        'Green Sector': greenSectorPreset(structuredClone(DEFAULT_PRESET)),
+        'Blue Sector': blueSectorPreset(structuredClone(DEFAULT_PRESET)),
+        'Yellow Sector': yellowSectorPreset(structuredClone(DEFAULT_PRESET)),
+        'Cyan Sector': cyanSectorPreset(structuredClone(DEFAULT_PRESET)),
+        'Magenta Sector': magentaSectorPreset(structuredClone(DEFAULT_PRESET)),
+        'Block Print': blockPrintPreset(structuredClone(DEFAULT_PRESET)),
     };
 
     console.log('got control configuration?', CONTROL_CONFIGURATION);
